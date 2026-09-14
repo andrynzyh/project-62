@@ -1,0 +1,878 @@
+---
+/**
+ * ADMIN CMS — Headless CMS for project-62.
+ *
+ * Flow:
+ * 1. Admin login (password-based)
+ * 2. Write/Edit posts (markdown + frontmatter)
+ * 3. Push to GitHub via REST API
+ * 4. GitHub Actions rebuilds site
+ * 5. Post published!
+ *
+ * Security:
+ * - Password hashed client-side (SHA-256)
+ * - GitHub token encrypted with password
+ * - Token sent directly to GitHub API (not through any server)
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { withBase } from '../lib/paths';
+
+const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'; // SHA-256 of 'password'
+---
+
+<BaseLayout title="Admin CMS — project-62" description="Admin panel for managing wiki content">
+  <!-- Login Screen -->
+  <div id="login-screen" class="admin-screen">
+    <div class="login-card">
+      <h1>🔐 Admin Login</h1>
+      <p>Masukkan password admin untuk mengelola konten wiki.</p>
+      <form id="login-form">
+        <input
+          type="password"
+          id="password-input"
+          placeholder="Password admin"
+          required
+          autocomplete="current-password"
+        />
+        <button type="submit" class="btn solid">Login</button>
+      </form>
+      <p id="login-error" class="error" style="display:none;"></p>
+    </div>
+  </div>
+
+  <!-- Dashboard Screen (hidden until login) -->
+  <div id="dashboard-screen" class="admin-screen" style="display:none;">
+    <div class="admin-header">
+      <h1>📋 CMS Dashboard</h1>
+      <div class="admin-actions">
+        <button id="btn-new-post" class="btn solid">+ New Post</button>
+        <button id="btn-refresh" class="btn">↻ Refresh</button>
+        <button id="btn-logout" class="btn danger">Logout</button>
+      </div>
+    </div>
+
+    <!-- Token Display -->
+    <div class="token-section">
+      <label>GitHub Personal Access Token:</label>
+      <input
+        type="password"
+        id="token-input"
+        placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+        autocomplete="off"
+      />
+      <small>Token dengan scope <code>repo</code> — simpan di localStorage (aman di perangkat ini).</small>
+    </div>
+
+    <!-- File Browser -->
+    <div id="file-browser" class="file-browser">
+      <h2>📁 File Browser</h2>
+      <div class="folder-select">
+        <label>Koleksi:</label>
+        <select id="collection-select">
+          <option value="digimon">Digimon</option>
+          <option value="guide">Guide</option>
+          <option value="dungeon">Dungeon</option>
+          <option value="items">Items</option>
+          <option value="playstyle">Playstyle</option>
+          <option value="progression">Progression</option>
+          <option value="system">System</option>
+          <option value="accessories">Accessories</option>
+          <option value="patchnote">Patchnote</option>
+        </select>
+        <button id="btn-load-files" class="btn">Load Files</button>
+      </div>
+      <div id="file-list" class="file-list"></div>
+    </div>
+
+    <!-- Editor -->
+    <div id="editor-section" class="editor-section" style="display:none;">
+      <h2>✏️ Editor</h2>
+      <div class="editor-meta">
+        <label>
+          File Name (slug):
+          <input type="text" id="edit-filename" placeholder="my-new-post" />
+          <small>.md</small>
+        </label>
+      </div>
+
+      <!-- Frontmatter Form -->
+      <div class="frontmatter-form">
+        <h3>Frontmatter</h3>
+        <div class="form-row">
+          <label>
+            Title *
+            <input type="text" id="fm-title" required />
+          </label>
+          <label>
+            Emoji
+            <input type="text" id="fm-emoji" placeholder="📄" maxlength="2" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>
+            Description *
+            <textarea id="fm-description" rows="2" required></textarea>
+          </label>
+        </div>
+        <div class="form-row">
+          <label>
+            Category (auto-collection)
+            <input type="text" id="fm-category" placeholder="guide" />
+          </label>
+          <label>
+            Tags (comma separated)
+            <input type="text" id="fm-tags" placeholder="beginner, guide" />
+          </label>
+          <label>
+            Order
+            <input type="number" id="fm-order" value="99" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>
+            Icon (image path under /public)
+            <input type="text" id="fm-icon" placeholder="digimon/Agumon.png" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Markdown Editor -->
+      <div class="markdown-editor">
+        <h3>Konten Markdown</h3>
+        <textarea id="edit-content" rows="20" placeholder="Tulis konten markdown di sini..."></textarea>
+      </div>
+
+      <!-- Preview -->
+      <details class="preview-section">
+        <summary>👁️ Preview Markdown</summary>
+        <div id="markdown-preview" class="prose"></div>
+      </details>
+
+      <!-- Actions -->
+      <div class="editor-actions">
+        <button id="btn-save" class="btn solid">💾 Save & Push to GitHub</button>
+        <button id="btn-preview" class="btn">👁️ Preview</button>
+        <button id="btn-back" class="btn">← Back to Dashboard</button>
+      </div>
+      <div id="status-message" class="status-msg" style="display:none;"></div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  // ── Client-side CMS logic ──────────────────────────────────────────
+  // All GitHub API calls happen from the browser using a Personal Access Token.
+
+  const REPO_OWNER = 'andrynsyzh'; // TODO: ganti dengan username GitHub
+  const REPO_NAME = '62'; // Nama repo
+  const BRANCH = 'main';
+  const API_BASE = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
+
+  // ── Auth ────────────────────────────────────────────────────────────
+  const PASSWORD_HASH = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8';
+
+  async function sha256(message: string): Promise<string> {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function isLoggedIn(): boolean {
+    return localStorage.getItem('cms_logged_in') === 'true';
+  }
+
+  function setLoggedIn(val: boolean): void {
+    localStorage.setItem('cms_logged_in', String(val));
+  }
+
+  function getToken(): string {
+    return localStorage.getItem('cms_github_token') ?? '';
+  }
+
+  function setToken(token: string): void {
+    localStorage.setItem('cms_github_token', token);
+  }
+
+  // ── UI References ──────────────────────────────────────────────────
+  const loginScreen = document.getElementById('login-screen')!;
+  const dashboardScreen = document.getElementById('dashboard-screen')!;
+  const loginForm = document.getElementById('login-form') as HTMLFormElement;
+  const passwordInput = document.getElementById('password-input') as HTMLInputElement;
+  const loginError = document.getElementById('login-error')!;
+  const tokenInput = document.getElementById('token-input') as HTMLInputElement;
+  const fileList = document.getElementById('file-list')!;
+  const editorSection = document.getElementById('editor-section')!;
+  const statusMessage = document.getElementById('status-message')!;
+  const editFilename = document.getElementById('edit-filename') as HTMLInputElement;
+  const editContent = document.getElementById('edit-content') as HTMLTextAreaElement;
+  const collectionSelect = document.getElementById('collection-select') as HTMLSelectElement;
+  const markdownPreview = document.getElementById('markdown-preview')!;
+
+  // ── Login ──────────────────────────────────────────────────────────
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const hash = await sha256(passwordInput.value);
+    if (hash === PASSWORD_HASH) {
+      setLoggedIn(true);
+      showDashboard();
+    } else {
+      loginError.textContent = 'Password salah!';
+      loginError.style.display = 'block';
+    }
+  });
+
+  // ── Show Dashboard ─────────────────────────────────────────────────
+  function showDashboard(): void {
+    loginScreen.style.display = 'none';
+    dashboardScreen.style.display = 'block';
+    tokenInput.value = getToken();
+    loadFiles();
+  }
+
+  // ── Logout ─────────────────────────────────────────────────────────
+  document.getElementById('btn-logout')!.addEventListener('click', () => {
+    setLoggedIn(false);
+    loginScreen.style.display = 'block';
+    dashboardScreen.style.display = 'none';
+  });
+
+  // ── Token ──────────────────────────────────────────────────────────
+  tokenInput.addEventListener('change', () => {
+    setToken(tokenInput.value.trim());
+  });
+
+  // ── GitHub API Helpers ─────────────────────────────────────────────
+  async function ghFetch(path: string, options: RequestInit = {}): Promise<any> {
+    const token = getToken();
+    if (!token) {
+      throw new Error('GitHub token belum diisi!');
+    }
+    const url = `${API_BASE}${path}`;
+    const res = await fetch(url, {
+      ...options,
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(`GitHub API error ${res.status}: ${err.message ?? res.statusText}`);
+    }
+    return res.json();
+  }
+
+  // ── Load Files ─────────────────────────────────────────────────────
+  async function loadFiles(): Promise<void> {
+    const collection = collectionSelect.value;
+    fileList.innerHTML = '<p class="muted">Loading...</p>';
+    try {
+      const items = await ghFetch(`/contents/src/content/${collection}`);
+      const mdFiles = items
+        .filter((f: any) => f.name.endsWith('.md'))
+        .sort((a: any, b: any) => a.name.localeCompare(b.name));
+
+      fileList.innerHTML = '';
+      if (mdFiles.length === 0) {
+        fileList.innerHTML = '<p class="muted">Tidak ada file di koleksi ini.</p>';
+        return;
+      }
+      for (const file of mdFiles) {
+        const row = document.createElement('div');
+        row.className = 'file-row';
+        row.innerHTML = `
+          <span class="file-name">📄 ${file.name}</span>
+          <div class="file-actions">
+            <button class="btn btn-sm" data-action="edit" data-path="${file.path}" data-sha="${file.sha}">Edit</button>
+            <button class="btn btn-sm danger" data-action="delete" data-path="${file.path}" data-sha="${file.sha}">Delete</button>
+          </div>
+        `;
+        fileList.appendChild(row);
+      }
+      // Event delegation for edit/delete
+      fileList.addEventListener('click', handleFileAction);
+    } catch (err: any) {
+      fileList.innerHTML = `<p class="error">Gagal load files: ${err.message}</p>`;
+    }
+  }
+
+  document.getElementById('btn-load-files')!.addEventListener('click', loadFiles);
+  document.getElementById('btn-refresh')!.addEventListener('click', loadFiles);
+
+  // ── File Actions ───────────────────────────────────────────────────
+  async function handleFileAction(e: Event): Promise<void> {
+    const target = e.target as HTMLButtonElement;
+    const action = target.dataset.action;
+    const path = target.dataset.path;
+    const sha = target.dataset.sha;
+    if (!action || !path) return;
+
+    if (action === 'edit') {
+      await openEditor(path, sha!);
+    } else if (action === 'delete') {
+      if (!confirm(`Yakin ingin menghapus ${path}?`)) return;
+      await deleteFile(path, sha!);
+    }
+  }
+
+  // ── Open Editor ────────────────────────────────────────────────────
+  async function openEditor(path: string, sha: string): Promise<void> {
+    editorSection.style.display = 'block';
+    editorSection.dataset.currentPath = path;
+    editorSection.dataset.currentSha = sha;
+    document.getElementById('editor-section')!.scrollIntoView({ behavior: 'smooth' });
+
+    try {
+      // Fetch file content
+      const file = await ghFetch(`/contents/${path}`);
+      const content = atob(file.content);
+      editContent.value = content;
+
+      // Parse frontmatter
+      const fmMatch = content.match(/^---\n([\s\S]*?)\n---\n/);
+      if (fmMatch) {
+        const fm = fmMatch[1];
+        setFrontmatterField('title', fm, 'title');
+        setFrontmatterField('emoji', fm, 'emoji');
+        setFrontmatterField('description', fm, 'description');
+        setFrontmatterField('category', fm, 'category');
+        setFrontmatterField('tags', fm, 'tags');
+        setFrontmatterField('order', fm, 'order');
+        setFrontmatterField('icon', fm, 'icon');
+      }
+
+      // Set filename from path
+      const parts = path.split('/');
+      editFilename.value = parts[parts.length - 1].replace('.md', '');
+      collectionSelect.value = parts[2]; // src/content/{collection}
+
+      showStatus('File loaded — edit di bawah, lalu Save.', 'info');
+    } catch (err: any) {
+      showStatus(`Gagal load file: ${err.message}`, 'error');
+    }
+  }
+
+  function setFrontmatterField(fieldId: string, fmText: string, yamlKey: string): void {
+    const el = document.getElementById(`fm-${fieldId}`) as HTMLInputElement | HTMLTextAreaElement;
+    if (!el) return;
+    const regex = new RegExp(`^${yamlKey}:\\s*(.+)`, 'm');
+    const match = fmText.match(regex);
+    if (match) {
+      let val = match[1].trim();
+      // Remove surrounding quotes
+      val = val.replace(/^["']|["']$/g, '');
+      // Handle arrays like ["tag1", "tag2"]
+      if (val.startsWith('[')) {
+        val = val.replace(/[\[\]"]/g, '').trim();
+      }
+      el.value = val;
+    }
+  }
+
+  // ── Save / Create / Update ─────────────────────────────────────────
+  document.getElementById('btn-save')!.addEventListener('click', async () => {
+    const collection = collectionSelect.value;
+    const filename = editFilename.value.trim().replace(/\.md$/, '');
+    if (!filename) {
+      showStatus('Filename wajib diisi!', 'error');
+      return;
+    }
+
+    // Build frontmatter
+    const frontmatter: Record<string, any> = {
+      title: (document.getElementById('fm-title') as HTMLInputElement).value.trim(),
+      emoji: (document.getElementById('fm-emoji') as HTMLInputElement).value.trim() || '📄',
+      description: (document.getElementById('fm-description') as HTMLTextAreaElement).value.trim(),
+      category: (document.getElementById('fm-category') as HTMLInputElement).value.trim(),
+      tags: (document.getElementById('fm-tags') as HTMLInputElement).value.trim()
+        .split(',').map(t => t.trim()).filter(Boolean),
+      order: parseInt((document.getElementById('fm-order') as HTMLInputElement).value) || 99,
+      icon: (document.getElementById('fm-icon') as HTMLInputElement).value.trim(),
+    };
+
+    // Remove empty fields
+    const fmEntries = Object.entries(frontmatter).filter(([_, v]) => {
+      if (Array.isArray(v)) return v.length > 0;
+      return v !== '' && v !== undefined && v !== null;
+    });
+
+    let fmYaml = fmEntries.map(([k, v]) => {
+      if (Array.isArray(v)) return `${k}: [${v.map(t => `"${t}"`).join(', ')}]`;
+      if (typeof v === 'number') return `${k}: ${v}`;
+      return `${k}: "${v}"`;
+    }).join('\n');
+
+    const fullContent = `---\n${fmYaml}\n---\n\n${editContent.value}`;
+
+    // Determine file path
+    const filePath = `src/content/${collection}/${filename}.md`;
+    const existingSha = editorSection.dataset.currentSha || undefined;
+
+    try {
+      showStatus('Menyimpan ke GitHub...', 'info');
+
+      // Check if file exists
+      let sha = existingSha;
+      if (!sha) {
+        try {
+          const existing = await ghFetch(`/contents/${filePath}`);
+          sha = existing.sha;
+        } catch {
+          // File doesn't exist yet — that's fine
+        }
+      }
+
+      const body: any = {
+        message: `cms: ${sha ? 'update' : 'create'} ${filePath}`,
+        content: btoa(unescape(encodeURIComponent(fullContent))),
+        branch: BRANCH,
+      };
+      if (sha) body.sha = sha;
+
+      await ghFetch(`/contents/${filePath}`, {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      });
+
+      showStatus(`✅ Berhasil! File ${filePath} sudah di-push ke GitHub. Site akan auto-rebuild.`, 'success');
+      editorSection.dataset.currentSha = sha ?? '';
+    } catch (err: any) {
+      showStatus(`❌ Gagal push: ${err.message}`, 'error');
+    }
+  });
+
+  // ── Delete ─────────────────────────────────────────────────────────
+  async function deleteFile(path: string, sha: string): Promise<void> {
+    try {
+      showStatus(`Menghapus ${path}...`, 'info');
+      await ghFetch(`/contents/${path}`, {
+        method: 'DELETE',
+        body: JSON.stringify({
+          message: `cms: delete ${path}`,
+          sha,
+          branch: BRANCH,
+        }),
+      });
+      showStatus(`✅ ${path} berhasil dihapus.`, 'success');
+      loadFiles();
+    } catch (err: any) {
+      showStatus(`❌ Gagal hapus: ${err.message}`, 'error');
+    }
+  }
+
+  // ── New Post ───────────────────────────────────────────────────────
+  document.getElementById('btn-new-post')!.addEventListener('click', () => {
+    editorSection.style.display = 'block';
+    editorSection.dataset.currentPath = '';
+    editorSection.dataset.currentSha = '';
+    editFilename.value = '';
+    editContent.value = '';
+    (document.getElementById('fm-title') as HTMLInputElement).value = '';
+    (document.getElementById('fm-emoji') as HTMLInputElement).value = '📄';
+    (document.getElementById('fm-description') as HTMLTextAreaElement).value = '';
+    (document.getElementById('fm-category') as HTMLInputElement).value = '';
+    (document.getElementById('fm-tags') as HTMLInputElement).value = '';
+    (document.getElementById('fm-order') as HTMLInputElement).value = '99';
+    (document.getElementById('fm-icon') as HTMLInputElement).value = '';
+    document.getElementById('editor-section')!.scrollIntoView({ behavior: 'smooth' });
+  });
+
+  // ── Back ───────────────────────────────────────────────────────────
+  document.getElementById('btn-back')!.addEventListener('click', () => {
+    editorSection.style.display = 'none';
+  });
+
+  // ── Preview ────────────────────────────────────────────────────────
+  document.getElementById('btn-preview')!.addEventListener('click', () => {
+    const md = editContent.value;
+    // Simple markdown to HTML (basic)
+    let html = md
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`(.+?)`/g, '<code>$1</code>')
+      .replace(/^- (.+)$/gm, '<li>$1</li>')
+      .replace(/\n{2,}/g, '</p><p>')
+      .replace(/\n/g, '<br>');
+    html = '<p>' + html + '</p>';
+    markdownPreview.innerHTML = html;
+  });
+
+  // ── Status Message ─────────────────────────────────────────────────
+  function showStatus(msg: string, type: 'info' | 'success' | 'error'): void {
+    statusMessage.textContent = msg;
+    statusMessage.className = `status-msg ${type}`;
+    statusMessage.style.display = 'block';
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────
+  if (isLoggedIn()) {
+    showDashboard();
+  } else {
+    loginScreen.style.display = 'block';
+    dashboardScreen.style.display = 'none';
+  }
+</script>
+
+<style>
+  .admin-screen {
+    max-width: 960px;
+    margin: 2rem auto;
+  }
+
+  /* ---- Login ---- */
+  .login-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2.5rem;
+    max-width: 400px;
+    margin: 4rem auto;
+    text-align: center;
+  }
+  .login-card h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+  }
+  .login-card p {
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
+  .login-card input {
+    width: 100%;
+    padding: 0.65rem 0.9rem;
+    font-size: 1rem;
+    font-family: var(--font-mono);
+    color: var(--text);
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 1rem;
+  }
+  .login-card input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(41, 241, 156, 0.15);
+  }
+  .login-card .btn {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+  }
+
+  /* ---- Dashboard ---- */
+  .admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .admin-header h1 {
+    font-size: 1.6rem;
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+  .admin-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .token-section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .token-section label {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  .token-section input {
+    width: 100%;
+    padding: 0.55rem 0.8rem;
+    font-family: var(--font-mono);
+    font-size: 0.92rem;
+    color: var(--text);
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .token-section input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .token-section small {
+    display: block;
+    margin-top: 0.5rem;
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+  .token-section code {
+    background: var(--panel-2);
+    border-color: var(--border);
+  }
+
+  /* ---- File Browser ---- */
+  .file-browser {
+    margin-bottom: 1.5rem;
+  }
+  .file-browser h2 {
+    font-size: 1.3rem;
+    margin-top: 0;
+  }
+  .folder-select {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .folder-select label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .folder-select select {
+    padding: 0.5rem 0.7rem;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--text);
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .file-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .file-name {
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    color: var(--text);
+  }
+  .file-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .btn-sm {
+    font-size: 0.78rem;
+    padding: 0.3rem 0.65rem;
+  }
+  .btn.danger {
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+  .btn.danger:hover {
+    background: var(--danger);
+    color: #fff;
+  }
+
+  /* ---- Editor ---- */
+  .editor-section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+  }
+  .editor-section h2 {
+    margin-top: 0;
+    border: none;
+    padding: 0;
+  }
+  .editor-meta label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+  .editor-meta input {
+    width: 100%;
+    padding: 0.55rem 0.8rem;
+    font-family: var(--font-mono);
+    font-size: 0.92rem;
+    color: var(--text);
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+  .editor-meta input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  /* ---- Frontmatter Form ---- */
+  .frontmatter-form {
+    margin: 1.5rem 0;
+    padding: 1rem 1.25rem;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .frontmatter-form h3 {
+    font-size: 1rem;
+    margin: 0 0 1rem;
+    color: var(--accent-2);
+    font-family: var(--font-mono);
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .form-row:last-child {
+    margin-bottom: 0;
+  }
+  .frontmatter-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .frontmatter-form input,
+  .frontmatter-form textarea {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.9rem;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: var(--font-mono);
+  }
+  .frontmatter-form input:focus,
+  .frontmatter-form textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  /* ---- Markdown Editor ---- */
+  .markdown-editor {
+    margin: 1.5rem 0;
+  }
+  .markdown-editor h3 {
+    font-size: 1rem;
+    margin: 0 0 0.75rem;
+    color: var(--accent-2);
+    font-family: var(--font-mono);
+  }
+  .markdown-editor textarea {
+    width: 100%;
+    min-height: 400px;
+    padding: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    resize: vertical;
+  }
+  .markdown-editor textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  /* ---- Preview ---- */
+  .preview-section {
+    margin: 1.5rem 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .preview-section summary {
+    padding: 0.75rem 1rem;
+    background: var(--panel-2);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+  .preview-section summary:hover {
+    color: var(--accent);
+  }
+  .preview-section .prose {
+    padding: 1rem 1.25rem;
+    max-height: 500px;
+    overflow-y: auto;
+  }
+
+  /* ---- Actions ---- */
+  .editor-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+  }
+
+  /* ---- Status ---- */
+  .status-msg {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-family: var(--font-mono);
+  }
+  .status-msg.info {
+    background: color-mix(in srgb, var(--accent-2) 15%, var(--panel));
+    border: 1px solid color-mix(in srgb, var(--accent-2) 40%, transparent);
+    color: var(--accent-2);
+  }
+  .status-msg.success {
+    background: color-mix(in srgb, var(--accent) 15%, var(--panel));
+    border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    color: var(--accent);
+  }
+  .status-msg.error {
+    background: color-mix(in srgb, var(--danger) 15%, var(--panel));
+    border: 1px solid color-mix(in srgb, var(--danger) 40%, transparent);
+    color: var(--danger);
+  }
+
+  .error {
+    color: var(--danger);
+    font-size: 0.9rem;
+    margin-top: 0.75rem;
+  }
+
+  .muted {
+    color: var(--muted);
+  }
+</style>

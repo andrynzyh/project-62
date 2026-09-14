@@ -1,0 +1,122 @@
+﻿---
+/**
+ * PATCH NOTES — every balance change and content drop for DMW.
+ * Auto-collected from src/content/patchnote/ (newest first).
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { withBase } from '../lib/paths';
+
+const entries = await getCollection('patchnote');
+const patches = [...entries].sort(
+  (a, b) => +new Date(b.data.date) - +new Date(a.data.date)
+);
+
+const fmtDate = (d: string | Date) => {
+  const date = typeof d === 'string' ? new Date(d) : d;
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+};
+
+// Group by type (Major first, then Hotfix) — the same section pattern every
+// other category listing uses; newest first inside each group.
+const groups = (['Major', 'Hotfix'] as const)
+  .map((type) => ({
+    label: type,
+    items: patches.filter((p) => (p.data.type ?? 'Hotfix') === type),
+  }))
+  .filter((group) => group.items.length > 0);
+---
+
+<BaseLayout
+  title="Patch Notes — project-62"
+  description="Full patch history for Digital Masters World — every balance change, hotfix and content drop."
+>
+  <div>
+      <p class="back"><a href={withBase('/hub/')}>← All Entries</a></p>
+      <h1>Patch Notes</h1>
+      <p class="muted">{patches.length} entries · grouped by type, newest first</p>
+
+      {
+        groups.map((group) => (
+          <section data-group={group.label}>
+            <h2>
+              {group.label} <span class="count">{group.items.length}</span>
+            </h2>
+            <div class="card-grid">
+              {group.items.map((p) => (
+                <a class="g-card panel" href={withBase(`/patchnote/${p.id}/`)}>
+                  <span class="g-icon" aria-hidden="true">
+                    {p.data.emoji ?? '📝'}
+                  </span>
+                  <h3>{p.data.title}</h3>
+                  <p class="g-date">{fmtDate(p.data.date)}</p>
+                  <p>{p.data.description}</p>
+                </a>
+              ))}
+            </div>
+          </section>
+        ))
+      }
+
+      {patches.length === 0 && (
+        <p class="empty panel">No patch notes yet — check back after the next update.</p>
+      )}
+  </div>
+</BaseLayout>
+
+<style>
+  /* Same card language as the generic category listings ([collection]/index) */
+  .count {
+    font-size: 0.8rem;
+    color: var(--accent);
+    vertical-align: middle;
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .g-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    color: var(--text);
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .g-card:hover {
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+    transform: translateY(-2px);
+  }
+  .g-card:hover h3 {
+    color: var(--accent);
+  }
+  .g-icon {
+    font-size: 1.4rem;
+  }
+  .g-card h3 {
+    margin: 0;
+    border: none;
+    padding: 0;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .g-card .g-date {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  .g-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+  .empty {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+  }
+</style>

@@ -1,0 +1,27 @@
+# CODEOWNERS — siapa yang wajib menyetujui perubahan pada file-area tertentu.
+# Format: <pola path> @<owner>
+#
+# GANTI `<owner>` dengan username GitHub proyek (mis. @digiedaw).
+# Tanpa perubahan di sini, semua file butuh persetujuan pemilik repo secara default.
+
+# Perubahan pada area sensitif membutuhkan persetujuan maintainer:
+* @owner
+
+# Schema Zod — sumber kebenaran semua frontmatter; salah ubah = build seluruh konten gagal
+/src/content.config.ts @owner
+
+# Konfigurasi & build
+/astro.config.mjs @owner
+/package.json @owner
+/package-lock.json @owner
+/tsconfig.json @owner
+
+# Workflow CI/CD — jangan diubah tanpa persetujuan
+/.github/workflows/ @owner
+
+# Lisensi & governance
+/LICENSE @owner
+/CONTENT_LICENSE.md @owner
+/SECURITY.md @owner
+/CODE_OF_CONDUCT.md @owner
+/GOVERNANCE.md @owner
