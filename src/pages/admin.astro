@@ -393,17 +393,16 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
 
   // ── File Actions ───────────────────────────────────────────────────
   async function handleFileAction(e: Event): Promise<void> {
-    const row = (e.target as HTMLElement).closest<HTMLElement>('.file-row');
-    if (!row) return;
-    const action = e.target instanceof HTMLElement && e.target.dataset.action
-      ? e.target.dataset.action
-      : row.dataset.action;
-    const path = row.dataset.path;
-    const sha = row.dataset.sha;
+    const btn = (e.target as HTMLElement).closest<HTMLElement>('.btn[data-action]')
+      ?? (e.target as HTMLElement).closest<HTMLElement>('.file-row.clickable');
+    if (!btn) return;
+    const action = btn.dataset.action;
     if (!action) return;
+    const path = btn.dataset.path;
+    const sha = btn.dataset.sha;
 
     if (action === 'open') {
-      currentDir = row.dataset.dir ?? '';
+      currentDir = btn.dataset.dir ?? '';
       loadFiles();
     } else if (action === 'edit') {
       if (!path) return;
