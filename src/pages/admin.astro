@@ -81,6 +81,7 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
         </select>
         <button id="btn-load-files" class="btn">Load Files</button>
       </div>
+      <div id="dir-breadcrumb" class="dir-breadcrumb"></div>
       <div id="file-list" class="file-list"></div>
     </div>
 
@@ -93,6 +94,7 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
           <input type="text" id="edit-filename" placeholder="my-new-post" />
           <small>.md</small>
         </label>
+        <p id="save-path-hint" class="muted save-hint"></p>
       </div>
 
       <!-- Frontmatter Form -->
@@ -265,21 +267,74 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
     return res.json();
   }
 
-  // ── Load Files ─────────────────────────────────────────────────────
+  // ── Load Files (mendukung subfolder) ───────────────────────────────
+  // currentDir = '' (root koleksi) atau relatif seperti 'sss' / 'Late-Game'.
+  let currentDir = '';
+
+  function dirPath(): string {
+    const base = `/src/content/${collectionSelect.value}`;
+    return currentDir ? `${base}/${currentDir}` : base;
+  }
+
+  function joinDir(dir: string, name: string): string {
+    return dir ? `${dir}/${name}` : name;
+  }
+
+  function renderBreadcrumb(): void {
+    const bc = document.getElementById('dir-breadcrumb');
+    if (!bc) return;
+    const parts = currentDir ? currentDir.split('/') : [];
+    let html = `<button class="btn btn-sm" data-action="open" data-dir=""${parts.length ? '' : ' disabled'}>🏠 ${collectionSelect.value}/</button>`;
+    let acc = '';
+    parts.forEach((p, i) => {
+      acc = acc ? `${acc}/${p}` : p;
+      const isLast = i === parts.length - 1;
+      html += ` <span class="bc-sep">/</span> ${
+        isLast
+          ? `<span class="bc-current">${p}/</span>`
+          : `<button class="btn btn-sm" data-action="open" data-dir="${acc}">${p}</button>`
+      }`;
+    });
+    bc.innerHTML = html;
+  }
+
+  function updateSaveHint(): void {
+    const hint = document.getElementById('save-path-hint');
+    if (!hint) return;
+    const subDir = currentDir ? `${currentDir}/` : '';
+    hint.textContent = `Disimpan ke: src/content/${collectionSelect.value}/${subDir}<nama-file>.md`;
+  }
+
   async function loadFiles(): Promise<void> {
-    const collection = collectionSelect.value;
     fileList.innerHTML = '<p class="muted">Loading...</p>';
+    renderBreadcrumb();
     try {
-      const items = await ghFetch(`/contents/src/content/${collection}`);
+      const items = await ghFetch(`/contents${dirPath()}`);
+      const dirs = items
+        .filter((f: any) => f.type === 'dir')
+        .sort((a: any, b: any) => a.name.localeCompare(b.name));
       const mdFiles = items
-        .filter((f: any) => f.name.endsWith('.md'))
+        .filter((f: any) => f.type === 'file' && f.name.endsWith('.md'))
         .sort((a: any, b: any) => a.name.localeCompare(b.name));
 
       fileList.innerHTML = '';
-      if (mdFiles.length === 0) {
-        fileList.innerHTML = '<p class="muted">Tidak ada file di koleksi ini.</p>';
+      if (dirs.length === 0 && mdFiles.length === 0) {
+        fileList.innerHTML = '<p class="muted">Tidak ada file di folder ini.</p>';
         return;
       }
+      // Subfolder dulu — bisa di-buka
+      for (const dir of dirs) {
+        const row = document.createElement('div');
+        row.className = 'file-row dir-row';
+        row.innerHTML = `
+          <span class="file-name">📁 ${dir.name}/</span>
+          <div class="file-actions">
+            <button class="btn btn-sm" data-action="open" data-dir="${joinDir(currentDir, dir.name)}">Buka</button>
+          </div>
+        `;
+        fileList.appendChild(row);
+      }
+      // Markdown files
       for (const file of mdFiles) {
         const row = document.createElement('div');
         row.className = 'file-row';
@@ -292,8 +347,6 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
         `;
         fileList.appendChild(row);
       }
-      // Event delegation for edit/delete
-      fileList.addEventListener('click', handleFileAction);
     } catch (err: any) {
       fileList.innerHTML = `<p class="error">Gagal load files: ${err.message}</p>`;
     }
@@ -301,6 +354,8 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
 
   document.getElementById('btn-load-files')!.addEventListener('click', loadFiles);
   document.getElementById('btn-refresh')!.addEventListener('click', loadFiles);
+  // Satu listener saja untuk seluruh aksi file/folder (delegation)
+  fileList.addEventListener('click', handleFileAction);
 
   // ── File Actions ───────────────────────────────────────────────────
   async function handleFileAction(e: Event): Promise<void> {
@@ -310,7 +365,10 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
     const sha = target.dataset.sha;
     if (!action || !path) return;
 
-    if (action === 'edit') {
+    if (action === 'open') {
+      currentDir = target.dataset.dir ?? '';
+      loadFiles();
+    } else if (action === 'edit') {
       await openEditor(path, sha!);
     } else if (action === 'delete') {
       if (!confirm(`Yakin ingin menghapus ${path}?`)) return;
@@ -348,6 +406,8 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
       const parts = path.split('/');
       editFilename.value = parts[parts.length - 1].replace('.md', '');
       collectionSelect.value = parts[2]; // src/content/{collection}
+      currentDir = parts.slice(3, -1).join('/'); // subfolder di dalam koleksi
+      updateSaveHint();
 
       showStatus('File loaded — edit di bawah, lalu Save.', 'info');
     } catch (err: any) {
@@ -407,8 +467,9 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
 
     const fullContent = `---\n${fmYaml}\n---\n\n${editContent.value}`;
 
-    // Determine file path
-    const filePath = `src/content/${collection}/${filename}.md`;
+    // Determine file path (menghormati subfolder yang sedang dibuka)
+    const subDir = currentDir ? `${currentDir}/` : '';
+    const filePath = `src/content/${collection}/${subDir}${filename}.md`;
     const existingSha = editorSection.dataset.currentSha || undefined;
 
     try {
@@ -439,6 +500,7 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
 
       showStatus(`✅ Berhasil! File ${filePath} sudah di-push ke GitHub. Site akan auto-rebuild.`, 'success');
       editorSection.dataset.currentSha = sha ?? '';
+      updateSaveHint();
     } catch (err: any) {
       showStatus(`❌ Gagal push: ${err.message}`, 'error');
     }
@@ -477,6 +539,7 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
     (document.getElementById('fm-tags') as HTMLInputElement).value = '';
     (document.getElementById('fm-order') as HTMLInputElement).value = '99';
     (document.getElementById('fm-icon') as HTMLInputElement).value = '';
+    updateSaveHint();
     document.getElementById('editor-section')!.scrollIntoView({ behavior: 'smooth' });
   });
 
@@ -682,6 +745,29 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
   .file-actions {
     display: flex;
     gap: 0.5rem;
+  }
+  .dir-breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 0.65rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+  }
+  .bc-sep {
+    opacity: 0.6;
+  }
+  .bc-current {
+    color: var(--accent);
+  }
+  .dir-row .file-name {
+    color: var(--accent);
+  }
+  .save-hint {
+    margin-top: 0.35rem;
+    font-size: 0.82rem;
+    opacity: 0.8;
   }
   .btn-sm {
     font-size: 0.78rem;
