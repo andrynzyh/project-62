@@ -63,6 +63,86 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
       <small>Token dengan scope <code>repo</code> — simpan di localStorage (aman di perangkat ini).</small>
     </div>
 
+    <!-- Homepage Editor -->
+    <div id="homepage-editor" class="homepage-editor">
+      <div class="editor-card-head">
+        <h2>🏠 Homepage Editor</h2>
+        <button id="btn-load-homepage" class="btn">↻ Load from GitHub</button>
+      </div>
+
+      <details open>
+        <summary><strong>Digimon Buff Rotation</strong></summary>
+        <div class="form-row">
+          <label>
+            Section Title
+            <input type="text" id="hp-buffs-title" />
+          </label>
+          <label>
+            Multiplier
+            <input type="text" id="hp-buffs-multiplier" placeholder="1.3x" />
+          </label>
+        </div>
+        <label>
+          Description
+          <textarea id="hp-buffs-description" rows="2"></textarea>
+        </label>
+        <div id="hp-buffs-list" class="buff-list"></div>
+        <button id="btn-add-buff" class="btn">+ Add Buff Member</button>
+      </details>
+
+      <details open>
+        <summary><strong>Last Patch</strong></summary>
+        <label>
+          Pilih Patch dari Koleksi
+          <select id="hp-patch-select">
+            <option value="">Load patchnote terlebih dahulu</option>
+          </select>
+          <small>Data homepage akan diambil otomatis dari frontmatter koleksi <code>patchnote</code>.</small>
+        </label>
+        <div class="form-row">
+          <label>
+            Title
+            <input type="text" id="hp-patch-title" readonly />
+          </label>
+          <label>
+            Emoji
+            <input type="text" id="hp-patch-emoji" maxlength="2" readonly />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>
+            Version
+            <input type="text" id="hp-patch-version" readonly />
+          </label>
+          <label>
+            Date
+            <input type="text" id="hp-patch-date" readonly />
+          </label>
+        </div>
+        <label>
+          Description
+          <textarea id="hp-patch-description" rows="2" readonly></textarea>
+        </label>
+        <label>
+          Summary
+          <textarea id="hp-patch-summary" rows="2" readonly></textarea>
+        </label>
+        <label>
+          Detail
+          <textarea id="hp-patch-detail" rows="3" readonly></textarea>
+        </label>
+        <label>
+          Link Href
+          <input type="text" id="hp-patch-href" readonly />
+        </label>
+      </details>
+
+      <div class="editor-actions">
+        <button id="btn-save-homepage" class="btn solid">💾 Save Homepage to GitHub</button>
+      </div>
+      <div id="homepage-status" class="status-msg" style="display:none;"></div>
+    </div>
+
     <!-- File Browser -->
     <div id="file-browser" class="file-browser">
       <h2>📁 File Browser</h2>
@@ -621,6 +701,255 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
     statusMessage.style.display = 'block';
   }
 
+  // ── Homepage Editor ────────────────────────────────────────────────
+  const HOMEPAGE_PATH = 'src/data/homepage.json';
+  let homepageSha: string | undefined;
+
+  interface BuffMember {
+    name: string;
+    tag: string;
+  }
+
+  interface PatchnoteEntry {
+    slug: string;
+    title: string;
+    emoji: string;
+    version: string;
+    date: string;
+    description: string;
+    type: string;
+    href: string;
+  }
+
+  function getHpEl(id: string): HTMLInputElement | HTMLTextAreaElement {
+    return document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement;
+  }
+
+  function showHomepageStatus(msg: string, type: 'info' | 'success' | 'error'): void {
+    const el = document.getElementById('homepage-status')!;
+    el.textContent = msg;
+    el.className = `status-msg ${type}`;
+    el.style.display = 'block';
+  }
+
+  function renderBuffList(members: BuffMember[]): void {
+    const container = document.getElementById('hp-buffs-list')!;
+    container.innerHTML = '';
+    members.forEach((m, i) => {
+      const row = document.createElement('div');
+      row.className = 'form-row buff-row';
+      row.innerHTML = `
+        <label>
+          Name
+          <input type="text" data-buff-index="${i}" data-buff-field="name" value="${escapeHtml(m.name)}" />
+        </label>
+        <label>
+          Tag
+          <input type="text" data-buff-index="${i}" data-buff-field="tag" value="${escapeHtml(m.tag)}" />
+        </label>
+        <button class="btn danger btn-remove-buff" data-buff-index="${i}">✕</button>
+      `;
+      container.appendChild(row);
+    });
+  }
+
+  function escapeHtml(s: string): string {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function readBuffMembers(): BuffMember[] {
+    const rows = document.querySelectorAll('#hp-buffs-list .buff-row');
+    const members: BuffMember[] = [];
+    rows.forEach((row) => {
+      const name = (row.querySelector('[data-buff-field="name"]') as HTMLInputElement)?.value.trim() ?? '';
+      const tag = (row.querySelector('[data-buff-field="tag"]') as HTMLInputElement)?.value.trim() ?? '-';
+      members.push({ name: name || '-', tag: tag || '-' });
+    });
+    return members;
+  }
+
+  // Homepage data terakhir yang di-load (untuk merge saat save)
+  let homepageData: any = null;
+  let patchnoteEntries: PatchnoteEntry[] = [];
+
+  function decodeGitHubContent(content: string): string {
+    return decodeURIComponent(escape(atob(content))).replace(/^\uFEFF/, '');
+  }
+
+  function parseFrontmatterValue(frontmatter: string, key: string): string {
+    const match = frontmatter.match(new RegExp(`^${key}:\\s*(?:"([^"]*)"|'([^']*)'|(.+))\\s*$`, 'm'));
+    return (match?.[1] ?? match?.[2] ?? match?.[3] ?? '').trim();
+  }
+
+  function formatPatchDate(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  }
+
+  function applyPatchnoteToForm(patch: PatchnoteEntry): void {
+    getHpEl('hp-patch-title').value = 'Last Patch';
+    getHpEl('hp-patch-emoji').value = patch.emoji;
+    getHpEl('hp-patch-version').value = patch.version;
+    getHpEl('hp-patch-date').value = patch.date;
+    getHpEl('hp-patch-description').value = patch.description;
+    getHpEl('hp-patch-summary').value = patch.description;
+    getHpEl('hp-patch-detail').value = `${patch.type} — ${patch.version}`;
+    getHpEl('hp-patch-href').value = patch.href;
+  }
+
+  async function loadPatchnoteOptions(selectedHref = '', selectedVersion = ''): Promise<void> {
+    const select = document.getElementById('hp-patch-select') as HTMLSelectElement;
+    select.innerHTML = '<option value="">Loading patchnotes...</option>';
+
+    const entries = await ghFetch('/contents/src/content/patchnote');
+    const markdownFiles = entries.filter((entry: { name: string; type: string }) =>
+      entry.type === 'file' && entry.name.endsWith('.md')
+    );
+
+    patchnoteEntries = await Promise.all(markdownFiles.map(async (entry: { name: string; path: string }) => {
+      const file = await ghFetch(`/contents/${entry.path}`);
+      const content = decodeGitHubContent(file.content);
+      const frontmatter = content.match(/^---\n([\s\S]*?)\n---/)?.[1] ?? '';
+      const slug = entry.name.replace(/\.md$/, '');
+      const date = parseFrontmatterValue(frontmatter, 'date');
+      return {
+        slug,
+        title: parseFrontmatterValue(frontmatter, 'title') || slug,
+        emoji: parseFrontmatterValue(frontmatter, 'emoji') || '📝',
+        version: parseFrontmatterValue(frontmatter, 'version'),
+        date: formatPatchDate(date),
+        description: parseFrontmatterValue(frontmatter, 'description'),
+        type: parseFrontmatterValue(frontmatter, 'type') || 'Hotfix',
+        href: `/patchnote/${slug}/`,
+        sortDate: date,
+      };
+    })).then((items) => items.sort((a, b) =>
+      new Date(b.sortDate).getTime() - new Date(a.sortDate).getTime()
+    ).map(({ sortDate: _sortDate, ...item }) => item));
+
+    select.innerHTML = '<option value="">Pilih patchnote...</option>';
+    patchnoteEntries.forEach((patch) => {
+      const option = document.createElement('option');
+      option.value = patch.slug;
+      option.textContent = `${patch.version || patch.title} — ${patch.title}`;
+      select.appendChild(option);
+    });
+
+    const selectedSlug = selectedHref.match(/\/patchnote\/([^/]+)\/?$/)?.[1] ?? '';
+    const normalizedVersion = selectedVersion.replace(/^Patch\s+/i, '').trim();
+    const selected = patchnoteEntries.find((patch) =>
+      patch.slug === selectedSlug ||
+      (normalizedVersion && patch.version === normalizedVersion)
+    );
+    if (selected) {
+      select.value = selected.slug;
+      applyPatchnoteToForm(selected);
+    }
+  }
+
+  async function loadHomepage(): Promise<void> {
+    showHomepageStatus('Loading homepage.json...', 'info');
+    try {
+      const file = await ghFetch(`/contents/${HOMEPAGE_PATH}`);
+      homepageSha = file.sha;
+      const content = decodeGitHubContent(file.content);
+      const data = JSON.parse(content);
+      homepageData = data;
+
+      getHpEl('hp-buffs-title').value = data.buffs?.title ?? '';
+      getHpEl('hp-buffs-multiplier').value = data.buffs?.multiplier ?? '';
+      getHpEl('hp-buffs-description').value = data.buffs?.description ?? '';
+      renderBuffList(data.buffs?.members ?? []);
+
+      getHpEl('hp-patch-title').value = data.patch?.title ?? '';
+      getHpEl('hp-patch-emoji').value = data.patch?.emoji ?? '';
+      getHpEl('hp-patch-version').value = data.patch?.version ?? '';
+      getHpEl('hp-patch-date').value = data.patch?.date ?? '';
+      getHpEl('hp-patch-description').value = data.patch?.description ?? '';
+      getHpEl('hp-patch-summary').value = data.patch?.summary ?? '';
+      getHpEl('hp-patch-detail').value = data.patch?.detail ?? '';
+      getHpEl('hp-patch-href').value = data.patch?.href ?? '/patchnote/';
+      await loadPatchnoteOptions(data.patch?.href ?? '', data.patch?.version ?? '');
+
+      showHomepageStatus('✅ Homepage loaded.', 'success');
+    } catch (err: any) {
+      showHomepageStatus(`❌ Gagal load: ${err.message}`, 'error');
+    }
+  }
+
+  async function saveHomepage(): Promise<void> {
+    const emojiRaw = (getHpEl('hp-patch-emoji') as HTMLInputElement).value.trim();
+    const emoji = [...emojiRaw].length <= 2 ? emojiRaw : '🛠️';
+
+    // Merge dengan data yang sudah ada — hanya timpa buffs & patch.
+    const newData = {
+      ...(homepageData ?? {}),
+      buffs: {
+        title: getHpEl('hp-buffs-title').value.trim(),
+        multiplier: getHpEl('hp-buffs-multiplier').value.trim(),
+        description: getHpEl('hp-buffs-description').value.trim(),
+        members: readBuffMembers(),
+      },
+      patch: {
+        title: getHpEl('hp-patch-title').value.trim(),
+        description: getHpEl('hp-patch-description').value.trim(),
+        version: getHpEl('hp-patch-version').value.trim(),
+        date: getHpEl('hp-patch-date').value.trim(),
+        summary: getHpEl('hp-patch-summary').value.trim(),
+        detail: getHpEl('hp-patch-detail').value.trim(),
+        emoji,
+        href: getHpEl('hp-patch-href').value.trim() || '/patchnote/',
+      },
+    };
+
+    const json = JSON.stringify(newData, null, 2);
+
+    try {
+      showHomepageStatus('Menyimpan homepage.json ke GitHub...', 'info');
+      const body: any = {
+        message: 'cms: update homepage buff rotation and last patch',
+        content: btoa(unescape(encodeURIComponent(json))),
+        branch: BRANCH,
+      };
+      if (homepageSha) body.sha = homepageSha;
+
+      const result = await ghFetch(`/contents/${HOMEPAGE_PATH}`, {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      });
+      homepageSha = result.content.sha;
+      showHomepageStatus('✅ Homepage berhasil di-push ke GitHub. Site akan auto-rebuild.', 'success');
+    } catch (err: any) {
+      showHomepageStatus(`❌ Gagal push: ${err.message}`, 'error');
+    }
+  }
+
+  document.getElementById('btn-load-homepage')?.addEventListener('click', loadHomepage);
+  document.getElementById('btn-save-homepage')?.addEventListener('click', saveHomepage);
+  document.getElementById('hp-patch-select')?.addEventListener('change', (event) => {
+    const slug = (event.target as HTMLSelectElement).value;
+    const selected = patchnoteEntries.find((patch) => patch.slug === slug);
+    if (selected) applyPatchnoteToForm(selected);
+  });
+  document.getElementById('btn-add-buff')?.addEventListener('click', () => {
+    const members = readBuffMembers();
+    members.push({ name: '', tag: '' });
+    renderBuffList(members);
+  });
+  document.getElementById('hp-buffs-list')?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('.btn-remove-buff');
+    if (!btn) return;
+    const idx = Number((btn as HTMLElement).dataset.buffIndex);
+    const members = readBuffMembers();
+    members.splice(idx, 1);
+    renderBuffList(members);
+  });
+
   // ── Init ───────────────────────────────────────────────────────────
   if (isLoggedIn()) {
     showDashboard();
@@ -738,13 +1067,105 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
     border-color: var(--border);
   }
 
+  /* ---- Homepage Editor ---- */
+  .homepage-editor {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .editor-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .editor-card-head h2 {
+    font-size: 1.3rem;
+    margin: 0;
+  }
+  .homepage-editor details {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  .homepage-editor summary {
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+  .homepage-editor label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+    flex: 1;
+  }
+  .homepage-editor label input,
+  .homepage-editor label textarea,
+  .homepage-editor label select {
+    width: 100%;
+    margin-top: 0.3rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.7rem;
+    color: var(--text);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .homepage-editor label input[readonly],
+  .homepage-editor label textarea[readonly] {
+    opacity: 0.8;
+    cursor: not-allowed;
+  }
+  .homepage-editor label input:focus,
+  .homepage-editor label textarea:focus,
+  .homepage-editor label select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .buff-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .buff-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+  }
+  .buff-row .btn-remove-buff {
+    flex: 0 0 auto;
+    padding: 0.5rem 0.75rem;
+  }
+
   /* ---- File Browser ---- */
   .file-browser {
+    position: relative;
+    padding: 1.25rem;
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--accent-2) 6%, transparent), transparent 38%),
+      var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
     margin-bottom: 1.5rem;
   }
   .file-browser h2 {
     font-size: 1.3rem;
     margin-top: 0;
+    margin-bottom: 0.9rem;
   }
   .folder-select {
     display: flex;
@@ -752,6 +1173,8 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
     gap: 0.75rem;
     flex-wrap: wrap;
     margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
   }
   .folder-select label {
     font-family: var(--font-mono);
@@ -800,38 +1223,74 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
     white-space: nowrap;
   }
 
-  .file-list {
+  :global(.file-list) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
+    gap: 0.65rem;
+    align-items: stretch;
+  }
+  :global(.file-row) {
+    position: relative;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-  }
-  .file-row {
-    display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: space-between;
-    background: var(--panel);
+    min-height: 92px;
+    background: color-mix(in srgb, var(--panel-2) 68%, transparent);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0.7rem 1rem;
-    gap: 1rem;
-    flex-wrap: wrap;
+    border-radius: 12px;
+    padding: 0.8rem;
+    gap: 0.7rem;
   }
-  .file-row.clickable {
+  :global(.file-row.clickable) {
     cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease;
+    transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
   }
-  .file-row.clickable:hover {
-    border-color: var(--accent);
-    background: var(--panel-2);
+  :global(.file-row.clickable:hover) {
+    border-color: color-mix(in srgb, var(--accent) 65%, var(--border));
+    background: color-mix(in srgb, var(--accent) 7%, var(--panel-2));
+    transform: translateY(-1px);
   }
-  .file-name {
+  :global(.file-name) {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-family: var(--font-mono);
-    font-size: 0.88rem;
+    font-size: 0.82rem;
     color: var(--text);
   }
-  .file-actions {
+  :global(.file-row:not(.dir-row)::before) {
+    content: 'MARKDOWN';
+    display: block;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+  }
+  :global(.dir-row) {
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, transparent), transparent 65%),
+      color-mix(in srgb, var(--panel-2) 80%, transparent);
+    border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+  }
+  :global(.dir-row::before) {
+    content: 'FOLDER';
+    display: block;
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+  }
+  :global(.file-actions) {
     display: flex;
-    gap: 0.5rem;
+    justify-content: flex-end;
+    gap: 0.4rem;
+    margin-top: auto;
+  }
+  :global(.file-actions .btn) {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.72rem;
   }
   .dir-breadcrumb {
     display: flex;
@@ -848,8 +1307,15 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
   .bc-current {
     color: var(--accent);
   }
-  .dir-row .file-name {
+  :global(.dir-row .file-name) {
     color: var(--accent);
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+  :global(.file-list > .muted),
+  :global(.file-list > .error) {
+    grid-column: 1 / -1;
+    margin: 0.5rem 0;
   }
   .save-hint {
     margin-top: 0.35rem;
