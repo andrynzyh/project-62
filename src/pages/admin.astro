@@ -584,6 +584,9 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
     (document.getElementById('fm-tags') as HTMLInputElement).value = '';
     (document.getElementById('fm-order') as HTMLInputElement).value = '99';
     (document.getElementById('fm-icon') as HTMLInputElement).value = '';
+    // New posts always go to the root of the selected collection, not a subfolder.
+    currentDir = '';
+    renderBreadcrumb();
     updateSaveHint();
     document.getElementById('editor-section')!.scrollIntoView({ behavior: 'smooth' });
   });
