@@ -425,10 +425,12 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
       // Fetch file content
       const file = await ghFetch(`/contents/${path}`);
       const content = atob(file.content);
-      editContent.value = content;
 
-      // Parse frontmatter
+      // Parse frontmatter — strip it from the markdown body so we don't
+      // end up with a duplicate frontmatter block on save.
       const fmMatch = content.match(/^---\n([\s\S]*?)\n---\n/);
+      editContent.value = fmMatch ? content.slice(fmMatch[0].length) : content;
+
       if (fmMatch) {
         const fm = fmMatch[1];
         setFrontmatterField('title', fm, 'title');
@@ -456,11 +458,12 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
   function setFrontmatterField(fieldId: string, fmText: string, yamlKey: string): void {
     const el = document.getElementById(`fm-${fieldId}`) as HTMLInputElement | HTMLTextAreaElement;
     if (!el) return;
-    const regex = new RegExp(`^${yamlKey}:\\s*(.+)`, 'm');
+    // Match quoted value (may span newlines) OR unquoted single-line value.
+    const regex = new RegExp(`^${yamlKey}:\\s*"([\\s\\S]*?)"\\s*$|^${yamlKey}:\\s*(.+)\\s*$`, 'm');
     const match = fmText.match(regex);
     if (match) {
-      let val = match[1].trim();
-      // Remove surrounding quotes
+      let val = (match[1] ?? match[2] ?? '').trim();
+      // Remove surrounding quotes (already stripped by capture groups, but be safe)
       val = val.replace(/^["']|["']$/g, '');
       // Handle arrays like ["tag1", "tag2"]
       if (val.startsWith('[')) {
@@ -480,9 +483,13 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
     }
 
     // Build frontmatter
+    const emojiRaw = (document.getElementById('fm-emoji') as HTMLInputElement).value.trim();
+    // Emoji must be a single codepoint — reject multi-byte / broken pastes.
+    const emoji = [...emojiRaw].length <= 2 ? emojiRaw : '📄';
+
     const frontmatter: Record<string, any> = {
       title: (document.getElementById('fm-title') as HTMLInputElement).value.trim(),
-      emoji: (document.getElementById('fm-emoji') as HTMLInputElement).value.trim() || '📄',
+      emoji,
       description: (document.getElementById('fm-description') as HTMLTextAreaElement).value.trim(),
       category: (document.getElementById('fm-category') as HTMLInputElement).value.trim(),
       tags: (document.getElementById('fm-tags') as HTMLInputElement).value.trim()
