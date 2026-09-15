@@ -160,7 +160,12 @@ hr { border: none; border-top: 2px dashed var(--border); margin: 2rem 0; }
 .card p { margin: 0; color: var(--muted); font-size: 0.9rem; }
 
 /* ---- markdown article body -------------------------------- */
-.prose { max-width: 75ch; margin-inline: auto; text-align: left; }
+.prose {
+  max-width: 75ch;
+  margin-inline: auto;
+  text-align: left;
+  padding: 0 1rem;
+}
 .prose img { max-width: 100%; border-radius: var(--radius); }
 .prose ul, .prose ol { padding-left: 1.3rem; }
 .prose li { margin: 0.3rem 0; }
@@ -178,9 +183,9 @@ hr { border: none; border-top: 2px dashed var(--border); margin: 2rem 0; }
 
 /* ---- Article layout makeover -------------------------------- */
 article {
-  max-width: 800px;
+  max-width: 900px;
   margin-inline: auto;
-  padding: 2rem 1.5rem 4rem;
+  padding: 1.5rem 0 3rem;
 }
 
 /* Breadcrumb navigation */
@@ -188,11 +193,12 @@ article {
   font-family: var(--font-mono);
   font-size: 0.8rem;
   color: var(--muted);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+  padding: 0 1rem;
 }
 .crumbs a {
   color: var(--accent-2);
@@ -216,7 +222,7 @@ article {
   display: flex;
   align-items: flex-start;
   gap: 1.25rem;
-  margin-bottom: 2rem;
+  margin: 0 0 2rem;
   padding: 1.5rem;
   background: linear-gradient(135deg, var(--panel) 0%, var(--panel-2) 100%);
   border: 1px solid var(--border);
@@ -244,20 +250,23 @@ article {
 
 /* Content spacing */
 .prose h2 {
-  margin-top: 2.5rem;
+  margin-top: 2rem;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
   border-bottom: 2px solid var(--border);
   color: var(--accent-2);
+  font-size: 1.3rem;
 }
 .prose h3 {
-  margin-top: 2rem;
+  margin-top: 1.5rem;
   margin-bottom: 0.75rem;
   color: var(--accent);
+  font-size: 1.1rem;
 }
 .prose p {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
   line-height: 1.75;
+  font-size: 0.95rem;
 }
 .prose strong {
   color: var(--accent);
@@ -266,14 +275,22 @@ article {
   color: var(--muted);
   font-style: italic;
 }
+.prose ul, .prose ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+.prose li {
+  margin: 0.25rem 0;
+  line-height: 1.6;
+}
 
 /* Tags */
 .tags {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin: 2rem 0;
-  padding: 1rem;
+  margin: 1.5rem 0;
+  padding: 0.75rem 1rem;
   background: var(--panel);
   border-radius: var(--radius);
   border: 1px solid var(--border);
@@ -286,7 +303,7 @@ article {
 article hr {
   border: none;
   border-top: 1px solid var(--border);
-  margin: 2.5rem 0;
+  margin: 2rem 0;
 }
 
 /* Pager navigation */
@@ -295,15 +312,15 @@ article hr {
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  margin-top: 2.5rem;
+  margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--border);
 }
 .pager .btn {
   flex: 1;
   text-align: center;
-  padding: 0.75rem 1rem;
-  font-size: 0.9rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.88rem;
 }
 .pager a {
   display: block;
