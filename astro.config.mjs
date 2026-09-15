@@ -7,15 +7,15 @@ import { remarkBaseLinks } from './src/lib/remark-base-links.mjs';
 
 /**
  * DEPLOYMENT TARGET — GitHub Pages PROJECT site:
- *   https://digiedaw.github.io/62/        (repo: digiedaw/62)
+ *   https://andrynzyh.github.io/project-62/        (repo: andrynzyh/project-62)
  *
  * `site` = origin, `base` = repo sub-path. Keep the two in sync when moving:
  *   - custom domain / Vercel root  →  site: 'https://your-domain.tld', base: '/'
  * All internal links flow through src/lib/paths.ts (withBase) and Markdown
  * paths are rewritten by remarkBaseLinks below, so nothing else must change.
  */
-const SITE = 'https://digiedaw.github.io';
-const BASE = '/62';
+const SITE = 'https://andrynzyh.github.io';
+const BASE = '/project-62';
 
 // https://astro.build/config
 export default defineConfig({
@@ -34,7 +34,7 @@ export default defineConfig({
     remarkPlugins: [
       remarkDirective,
       remarkAdmonition,
-      // "/misc/img.webp" in Markdown → "/62/misc/img.webp" in the build
+      // "/misc/img.webp" in Markdown → "/project-62/misc/img.webp" in the build
       remarkBaseLinks({ base: BASE }),
     ],
   },

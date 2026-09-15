@@ -82,7 +82,7 @@ const selected = (initial && tamers.find((t) => t.slug === initial)) ?? tamers[0
       if (oldEmoji && oldEmoji.parentNode) oldEmoji.parentNode.removeChild(oldEmoji);
       if (t.image) {
         var img = document.createElement("img");
-        img.src = BASE + "/" + t.image; /* BASE = "" (root) or "/62" (GitHub Pages) */
+        img.src = BASE + "/" + t.image; /* BASE = "" (root) or "/project-62" (GitHub Pages) */
         img.alt = t.name;
         portrait.insertBefore(img, portrait.firstChild);
       } else {

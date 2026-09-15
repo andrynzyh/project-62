@@ -5,7 +5,7 @@
 # 2. Repo Settings → Environments → protected environment "github-pages"
 #    (workflow ini memakai token environment github-pages bawaan).
 #
-# Target: https://<owner>.github.io/62/  (site + base /62 di astro.config.mjs)
+# Target: https://andrynzyh.github.io/project-62/  (site + base /project-62 di astro.config.mjs)
 # Semua internal links memakai withBase()/remarkBaseLinks — deploy harusnya
 # berfungsi tanpa perubahan kode apa pun.
 

@@ -35,12 +35,13 @@ Proyek ini **terbuka untuk publik** — siapa pun boleh berkontribusi artikel/gu
 - **`src/content.config.ts`** — sumber kebenaran schema Zod. 3 koleksi *explicit* ber-schema ketat: `digimon` (fields: stage, rank, attribute, role, partner), `accessories` (category, owner), `patchnote` (version, date, type Major/Hotfix).
 - **Auto-collection** — SEMUA folder lain di `src/content/` otomatis jadi koleksi (schema generik: title, emoji, category, owner, description, tags, order). Menambah kategori baru = cukup buat folder, TANPA edit kode. Ini termasuk `dungeon/`, `guide/`, `items/`, `playstyle/`, `progression/`, `system/`.
 - **Routing** — `src/pages/digimon/`, `accessories/`, `patchnote/` punya route khusus (diutamakan); koleksi auto-dirender lewat `src/pages/[collection]/` (`index.astro` + `[...slug].astro`).
+- **Halaman non-konten** (jangan bingung dengan konten): `index.astro` (landing), `hub.astro` (navigasi kategori), `search.astro` (search custom), `about.astro`, `404.astro`, dan `admin.astro` (**headless CMS**: login password → tulis markdown → push ke repo via GitHub API → GitHub Actions rebuild; token GitHub dienkripsi client-side — tidak ada server).
 - **Navigasi** — satu sumber kebenaran: `src/lib/navigation.ts` (`SIDEBAR_SECTIONS` untuk koleksi curated; auto-collection muncul sendiri).
 - **Komponen existing** (jangan buat baru kalau sudah ada): `Header`, `Footer`, `EntryIcon` (render icon/gambar), `WikiCard`, `AccessoryCard`, `TamerList`, `NoviceChallenge`. Semua flat di `src/components/`; satu-satunya layout = `BaseLayout.astro` (SEO meta, OG tags, canonical sudah dibangun di sini).
 
-## Base path `/62/` (penting!)
+## Base path `/project-62/` (penting!)
 
-Deploy target: **GitHub Pages project site** (`site: https://digiedaw.github.io`, `base: /62` di `astro.config.mjs`).
+Deploy target: **GitHub Pages project site** (`site: https://andrynzyh.github.io/`, `base: /project-62` di `astro.config.mjs`).
 
 - Semua link internal **wajib** lewat `withBase()` dari `src/lib/paths.ts` (idempotent; aman di dev & production).
 - Link/embed markdown root-relative (`/digimon/x.png`) otomatis di-rewrite oleh `remarkBaseLinks` saat build — penulis konten cukup menulis path absolut.

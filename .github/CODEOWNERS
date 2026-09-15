@@ -1,7 +1,7 @@
 # CODEOWNERS — siapa yang wajib menyetujui perubahan pada file-area tertentu.
 # Format: <pola path> @<owner>
 #
-# GANTI `<owner>` dengan username GitHub proyek (mis. @digiedaw).
+# GANTI `<owner>` dengan username GitHub proyek (mis. @andrynzyh).
 # Tanpa perubahan di sini, semua file butuh persetujuan pemilik repo secara default.
 
 # Perubahan pada area sensitif membutuhkan persetujuan maintainer:

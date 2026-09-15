@@ -18,8 +18,8 @@ Model yang dipakai: **Pull Request + review** (branch `main` dilindungi).
 2. **Clone** fork Anda dan buat branch baru:
 
    ```bash
-   git clone https://github.com/<username>/62.git
-   cd 62
+   git clone https://github.com/<username>/project-62.git
+   cd project-62
    git checkout -b feat/nama-artikel
    ```
 

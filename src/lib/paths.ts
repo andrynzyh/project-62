@@ -2,16 +2,16 @@
  * BASE-PATH HELPERS — GitHub Pages sub-path safety net.
  *
  * The site deploys as a GitHub Pages PROJECT site:
- *   https://digiedaw.github.io/62/   (repo: digiedaw/62)
+ *   https://andrynzyh.github.io/project-62/   (repo: andrynzyh/project-62)
  * so every root-relative URL ("/digimon/") must be prefixed with the
- * configured base ("/62"). Astro exposes that base to client code as
+ * configured base ("/project-62"). Astro exposes that base to client code as
  * import.meta.env.BASE_URL — keep ALL internal links going through
  * withBase() and they keep working no matter what `base` is set to
  * (root domain / Vercel → BASE_URL becomes "/" → prefix becomes "").
  */
 const RAW_BASE: string = import.meta.env.BASE_URL ?? '/';
 
-/** Base without the trailing slash: "/62" (or "" when deployed at root). */
+/** Base without the trailing slash: "/project-62" (or "" when deployed at root). */
 export const BASE = RAW_BASE === '/' ? '' : RAW_BASE.replace(/\/+$/, '');
 
 /**

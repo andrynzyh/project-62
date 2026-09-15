@@ -1,8 +1,8 @@
 /**
  * Remap root-relative Markdown links & images ("/digimon/x/") onto the
- * configured base ("/62/digimon/x/") at build time, so content authors can
+ * configured base ("/project-62/digimon/x/") at build time, so content authors can
  * keep writing clean absolute paths while GitHub Pages serves the site
- * under /62/. Wired up in astro.config.mjs:
+ * under /project-62/. Wired up in astro.config.mjs:
  *
  *   remarkBaseLinks({ base: BASE })
  *

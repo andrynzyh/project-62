@@ -39,5 +39,5 @@ jobs:
         run: |
           test -d dist && echo "✅ build sukses — dist/ ada"
           test -f dist/index.html && echo "✅ index.html ter-generate"
-          # Pastikan base path /62/ dipakai (GH Pages project site)
-          grep -q 'href="/62/' dist/index.html && echo "✅ base path /62/ terbaca" || echo "⚠️ base path tidak terdeteksi di index — cek astro.config.mjs"
+          # Pastikan base path /project-62/ dipakai (GH Pages project site)
+          grep -q 'href="/project-62/' dist/index.html && echo "✅ base path /project-62/ terbaca" || echo "⚠️ base path tidak terdeteksi di index — cek astro.config.mjs"

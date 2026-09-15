@@ -2,10 +2,13 @@
 
 ## 🎯 Project Overview
 
-- **Project**: project-62
+- **Project**: project-62 — remake dari `digidocs` (Docusaurus) → **Astro 5** SSG
 - **Type**: Static site generator (SSG) menggunakan Astro
 - **Fokus**: Dokumentasi lengkap untuk game MMORPG Digimon
-- **Content**: Species digimon, evolution guides, items, maps, role/playstyle, player guides.
+- **Content**: Species digimon, evolution guides, items, dungeon, role/playstyle, player guides.
+- **Deploy**: GitHub Pages project site — `https://andrynzyh.github.io/project-62/` (base `/project-62`)
+
+> 📖 **Sumber kebenaran teknis**: baca [`AGENTS.md`](./AGENTS.md) untuk struktur lengkap, schema Zod (`src/content.config.ts`), routing, base path `/project-62/`, dan key files. File ini hanya ringkasan aturan kerja agent.
 
 ---
 
@@ -15,6 +18,8 @@
 - JANGAN buat perubahan pada file di `src/content/` tanpa konfirmasi (karena sering diisi manual)
 - JANGAN install dependencies baru tanpa persetujuan
 - JANGAN ubah struktur folder utama tanpa diskusi
+- JANGAN ubah `src/content.config.ts`, `astro.config.mjs`, atau `.github/workflows/` tanpa diskusi (dilindungi CODEOWNERS)
+- JANGAN commit `dist/` (hasil build)
 
 ---
 
@@ -22,11 +27,12 @@
 
 - Selalu gunakan **Content Collections** Astro untuk semua konten
 - Gunakan **schema Zod** di `src/content.config.ts` (Astro 5 convention) untuk validasi
-- Gunakan komponen reusable (jangan DRY violation)
+- Gunakan komponen reusable — cek `src/components/` dulu (sudah ada: `Header`, `Footer`, `EntryIcon`, `WikiCard`, `AccessoryCard`, `TamerList`, `NoviceChallenge`)
 - Selalu tambahkan **frontmatter lengkap** sesuai schema di setiap konten baru
-- Gunakan **TypeScript** (bukan JavaScript) untuk file `.ts`, `.tsx`, `.astro`
-- Untuk gambar, gunakan format WebP dan simpan di `public/images/`
-- Gunakan **CSS Modules** atau CSS variables untuk styling
+- Gunakan **TypeScript** (bukan JavaScript) untuk file `.ts`, `.tsx`, `.astro`; `interface` untuk shape, `type` untuk union; hindari `any`
+- Untuk gambar, gunakan format WebP dan simpan di `public/<koleksi>/`
+- Gunakan **CSS variables** untuk styling (`src/styles/global.css` — dark theme; re-skin cukup ganti variabel)
+- Semua link internal wajib lewat `withBase()` dari `src/lib/paths.ts` (base path `/project-62/`)
 
 ---
 
@@ -55,6 +61,7 @@ src/
 │ ├── hub.astro          # Hub navigasi kategori
 │ ├── search.astro       # Client-side search (custom, BUKAN Pagefind)
 │ ├── about.astro
+│ ├── admin.astro        # Headless CMS (login password → GitHub API → rebuild)
 │ ├── 404.astro
 │ ├── digimon/           # index.astro + [...slug].astro
 │ ├── accessories/       # index.astro + [...slug].astro
@@ -65,7 +72,7 @@ src/
     └── global.css
 ```
 
-*Catatan: Selain folder explicit di `content.config.ts` (`digimon`, `accessories`, `patchnote`), folder lain di `src/content/` di-detect otomatis menjadi collection melalui auto-collection scan. Site config (site/base URL) ada di `astro.config.mjs` — deploy target: GitHub Pages (`/62/` base path).*
+*Catatan: Selain folder explicit di `content.config.ts` (`digimon`, `accessories`, `patchnote`), folder lain di `src/content/` di-detect otomatis menjadi collection melalui auto-collection scan. Site config (site/base URL) ada di `astro.config.mjs` — deploy target: GitHub Pages (`/project-62/` base path).*
 
 ---
 
@@ -133,7 +140,7 @@ order: 1
 ## 🔍 Search & SEO
 
 - Search menggunakan **custom client-side search** (`src/pages/search.astro`): index dibangun saat build dari semua collection (curated + auto). BUKAN Pagefind.
-- Deployment: **GitHub Pages project site** (`site: https://digiedaw.github.io`, `base: /62` di `astro.config.mjs`). Semua link internal wajib lewat `withBase()` dari `src/lib/paths.ts`.
+- Deployment: **GitHub Pages project site** (`site: https://andrynzyh.github.io`, `base: /project-62` di `astro.config.mjs`). Semua link internal wajib lewat `withBase()` dari `src/lib/paths.ts`.
 - Setiap halaman harus memiliki:
 
 > <title> yang deskriptif </title>
@@ -144,7 +151,8 @@ order: 1
 
 ## 🧪 Testing & Validation
 
-- Test build: `npm run build` harus sukses tanpa error (sekaligus memvalidasi Zod schema)
+- Test build: `npm run build` harus sukses tanpa error (exit code 0) — sekaligus memvalidasi Zod schema
+- ⚠️ Jangan pasang `process.on('exit')` di plugin remark — membuat Astro exit code 1 walau build sukses (lihat `src/lib/remark-base-links.mjs`)
 - Pastikan semua konten baru lolos Zod schema validation
 - Jangan commit file di dist/ (hasil build)
 
@@ -156,4 +164,5 @@ Saat diminta untuk membuat/mengedit konten:
 - Ikuti frontmatter schema yang sudah ada (`content.config.ts`)
 - Gunakan komponen yang sudah ada (WikiCard, AccessoryCard, EntryIcon, dll) — jangan buat baru jika tidak perlu
 - Koleksi auto-discovered otomatis muncul di navigasi & search — tidak perlu edit `lib/navigation.ts` kecuali ingin custom label/icon
+- **Auto-collection**: buat folder baru di `src/content/` → otomatis jadi koleksi baru tanpa edit kode
 - Jika menambah komponen baru, pastikan TypeScript type safe.

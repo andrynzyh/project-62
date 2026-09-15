@@ -16,7 +16,7 @@
 - [x] Tambahkan Content Collections (`src/content.config.ts` — konvensi Astro 5)
 - [x] Setup CSS global & CSS variables (dark mode ready) — `src/styles/global.css`
 - [x] Setup struktur folder (components, layouts, pages, lib, data, styles)
-- [x] Setup **site config** (site + base di `astro.config.mjs` — GitHub Pages `/62/`)
+- [x] Setup **site config** (site + base di `astro.config.mjs` — GitHub Pages `/project-62/`)
 - [x] Setup **navigation** (`src/lib/navigation.ts`)
 - [x] Buat **BaseLayout.astro** (head, meta, canonical, OG tags, Header, Footer)
 - [x] Setup **sitemap** (`@astrojs/sitemap`)
@@ -158,7 +158,7 @@
 
 ## 9. 🚀 Deployment & CI/CD
 
-- [x] Deploy target: **GitHub Pages project site** (repo `andrynzyh/62`, `base: /62/` di `astro.config.mjs`)
+- [x] Deploy target: **GitHub Pages project site** (repo `andrynzyh/project-62`, `base: /project-62/` di `astro.config.mjs`)
 - [ ] Inisialisasi git repo lokal (folder `.git` belum ada di project root)
 - [ ] Setup CI/CD — `.github/workflows/deploy.yml` (build & deploy otomatis ke GitHub Pages on push `main`)
 - [ ] Custom domain (opsional)
@@ -169,7 +169,7 @@
 
 - [ ] Install dependencies (`npm install` — `node_modules` belum ada di environment ini)
 - [ ] `npm run build` sukses tanpa error (sekalian memvalidasi Zod schema)
-- [ ] Test semua internal links (base path `/62/` via `withBase()` + remarkBaseLinks)
+- [ ] Test semua internal links (base path `/project-62/` via `withBase()` + remarkBaseLinks)
 - [ ] Test search menemukan konten dari semua koleksi
 - [ ] Test navigasi hub → semua kategori
 - [ ] Test dark mode & responsive
@@ -206,5 +206,5 @@ Setiap fitur/halaman dianggap selesai jika:
 - [ ] `npm run build` sukses tanpa error (frontmatter lolos Zod schema)
 - [ ] Halaman muncul di navigasi (`/hub`) & terindeks search
 - [ ] Responsive di mobile & desktop
-- [ ] Link internal valid (base path `/62/` benar di dev dan production)
+- [ ] Link internal valid (base path `/project-62/` benar di dev dan production)
 - [ ] Lighthouse ≥ 90 (untuk halaman baru)

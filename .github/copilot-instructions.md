@@ -6,3 +6,15 @@
 - Kode itu sendiri, identifier, nama file, nama variabel, komentar yang sudah ada di dalam file kode — tetap dalam bahasa Inggris (bukan bagian dari komunikasi).
 - Dokumentasi konten baru (`src/content/**`) mengikuti bahasa yang sudah dipakai di file sejenis; umumnya Bahasa Indonesia untuk konten, frontmatter keys tetap bahasa Inggris.
 - Struktur kalimat wajar, tidak perlu kaku; gunakan istilah teknis asing bila lebih umum (e.g. *build*, *deploy*, *frontmatter*).
+
+## Ringkasan proyek
+
+Wiki statis **Bahasa Indonesia** untuk MMORPG Digimon, dibangun dengan **Astro 5** + Content Collections (Zod). Menyajikan species digimon, evolution, items, dungeon, playstyle, dan progression guide — deploy ke GitHub Pages di `https://andrynzyh.github.io/project-62/`.
+
+- **Komunikasi**: selalu Bahasa Indonesia (aturan di atas).
+- **Kode & komentar di dalam file**: bahasa Inggris, sesuai konvensi yang sudah ada.
+- **Konten**: Bahasa Indonesia; frontmatter keys tetap bahasa Inggris.
+- **Instruksi teknis lengkap** (perintah, struktur, schema, konvensi kode): baca [`AGENTS.md`](./AGENTS.md) — file itu sumber kebenaran untuk konvensi teknis.
+- **Kontribusi & governance**: ikuti [`CONTRIBUTING.md`](./CONTRIBUTING.md) dan [`GOVERNANCE.md`](./GOVERNANCE.md) (model PR + review, `main` dilindungi).
+
+> **Catatan**: proyek ini adalah remake dari `digidocs` (Docusaurus) — jangan bawa pola Docusaurus ke sini. Proyek Astro ini adalah sumber kebenaran.

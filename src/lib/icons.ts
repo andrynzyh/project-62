@@ -62,7 +62,7 @@ export function resolveIcon({ collection, slug, icon }: IconRef): string | undef
   if (icon) {
     // Explicit path, extension or library namespace
     if (icon.includes('/') || icon.includes(':')) {
-      // Normalize relative /public paths ("digimon/Foo.png" -> "/62/digimon/Foo.png")
+      // Normalize relative /public paths ("digimon/Foo.png" -> "/project-62/digimon/Foo.png")
       // so they resolve from any route depth — consumers that don't render via
       // EntryIcon (e.g. the search index) would otherwise build broken URLs.
       // withBase() passes icon-library names ("lucide:swords") through untouched.

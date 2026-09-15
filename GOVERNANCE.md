@@ -76,7 +76,7 @@ Area konten (`src/content/**`) tidak diproteksi khusus di CODEOWNERS supaya kont
    git add .
    git commit -m "chore: inisialisasi project-62"
    git branch -M main
-   git remote add origin https://github.com/<owner>/62.git
+   git remote add origin https://github.com/andrynzyh/project-62.git
    git push -u origin main
    ```
 

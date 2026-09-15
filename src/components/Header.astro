@@ -1,7 +1,7 @@
 ---
 import { withBase, BASE } from '../lib/paths';
 
-/** Remove the deploy base ("/62") and trailing slashes → '/', '/digimon', ... */
+/** Remove the deploy base ("/project-62") and trailing slashes → '/', '/digimon', ... */
 const strip = (p: string): string => {
   const noSlash = p.replace(/\/+$/, '');
   const withoutBase =
@@ -21,7 +21,7 @@ const links = [
 
 const isActive = (href: string): boolean => {
   const target = strip(href);
-  // Home: exact match only — otherwise '/62/digimon' would match '/' and
+  // Home: exact match only — otherwise '/project-62/digimon' would match '/' and
   // keep Home underlined on every page.
   if (target === '/') return current === '/';
   // Section: active on the section index and any child page.

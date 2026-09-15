@@ -21,7 +21,7 @@ Jelaskan perubahan Anda secara singkat.
 - [ ] `npm run build` sukses tanpa error
 - [ ] Frontmatter lengkap & lolos schema Zod
 - [ ] Konten ditulis dalam Bahasa Indonesia
-- [ ] Link internal sudah benar (base path `/62/` via `withBase()` / path absolut markdown)
+- [ ] Link internal sudah benar (base path `/project-62/` via `withBase()` / path absolut markdown)
 - [ ] Tidak ada file uji/placeholder
 - [ ] Perubahan tidak relevan tidak disertakan
 
