@@ -363,16 +363,18 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
     const action = target.dataset.action;
     const path = target.dataset.path;
     const sha = target.dataset.sha;
-    if (!action || !path) return;
+    if (!action) return;
 
     if (action === 'open') {
       currentDir = target.dataset.dir ?? '';
       loadFiles();
     } else if (action === 'edit') {
+      if (!path) return;
       await openEditor(path, sha!);
     } else if (action === 'delete') {
+      if (!path || !sha) return;
       if (!confirm(`Yakin ingin menghapus ${path}?`)) return;
-      await deleteFile(path, sha!);
+      await deleteFile(path, sha);
     }
   }
 
