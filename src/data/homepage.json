@@ -103,35 +103,19 @@
         "tag": "AA"
       },
       {
-        "name": "Dukemon (Shin)",
-        "tag": "SK"
-      },
-      {
-        "name": "Imperialdramon Paladin Mode (Tempered)",
+        "name": "Jetmervamon",
         "tag": "AA"
-      },
-      {
-        "name": "JetMervamon",
-        "tag": "AA"
-      },
-      {
-        "name": "-",
-        "tag": "-"
-      },
-      {
-        "name": "-",
-        "tag": "-"
       }
     ]
   },
   "patch": {
     "title": "Last Patch",
-    "description": "Major balance pass and new content drop.",
-    "version": "3.5.0",
-    "date": "August 6, 2026",
-    "summary": "Major balance pass and new content drop.",
-    "detail": "Major — 3.5.0",
+    "description": "",
+    "version": "3.5.1",
+    "date": "September 4, 2026",
+    "summary": "",
+    "detail": "Hotfix — 3.5.1",
     "emoji": "🛠️",
-    "href": "/patchnote/3-5-0/"
+    "href": "/patchnote/3-5-1/"
   }
 }
