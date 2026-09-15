@@ -385,6 +385,8 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
   document.getElementById('btn-refresh')!.addEventListener('click', loadFiles);
   // Satu listener saja untuk seluruh aksi file/folder (delegation)
   fileList.addEventListener('click', handleFileAction);
+  // Breadcrumb juga clickable (kembali ke folder induk / root)
+  document.getElementById('dir-breadcrumb')?.addEventListener('click', handleFileAction);
   // Live filter tanpa klik tombol
   const searchInput = document.getElementById('file-search') as HTMLInputElement;
   searchInput?.addEventListener('input', renderRows);
