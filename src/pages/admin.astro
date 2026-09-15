@@ -81,6 +81,10 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
         </select>
         <button id="btn-load-files" class="btn">Load Files</button>
       </div>
+      <div class="browser-toolbar">
+        <input type="search" id="file-search" placeholder="🔍 Cari file… (ketik untuk filter)" autocomplete="off" />
+        <span id="file-count" class="file-count"></span>
+      </div>
       <div id="dir-breadcrumb" class="dir-breadcrumb"></div>
       <div id="file-list" class="file-list"></div>
     </div>
@@ -305,9 +309,26 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
     hint.textContent = `Disimpan ke: src/content/${collectionSelect.value}/${subDir}<nama-file>.md`;
   }
 
+  // State daftar file saat ini (untuk filter client-side)
+  let currentRows: HTMLElement[] = [];
+
+  function renderRows(): void {
+    const searchEl = document.getElementById('file-search') as HTMLInputElement;
+    const q = (searchEl?.value ?? '').trim().toLowerCase();
+    const filtered = q
+      ? currentRows.filter((r) => r.textContent?.toLowerCase().includes(q))
+      : currentRows;
+    const countEl = document.getElementById('file-count');
+    if (countEl) countEl.textContent = `${filtered.length} dari ${currentRows.length}`;
+    fileList.innerHTML = '';
+    filtered.forEach((r) => fileList.appendChild(r));
+  }
+
   async function loadFiles(): Promise<void> {
     fileList.innerHTML = '<p class="muted">Loading...</p>';
     renderBreadcrumb();
+    const searchEl = document.getElementById('file-search') as HTMLInputElement;
+    if (searchEl) searchEl.value = '';
     try {
       const items = await ghFetch(`/contents${dirPath()}`);
       const dirs = items
@@ -317,27 +338,34 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
         .filter((f: any) => f.type === 'file' && f.name.endsWith('.md'))
         .sort((a: any, b: any) => a.name.localeCompare(b.name));
 
-      fileList.innerHTML = '';
+      currentRows = [];
       if (dirs.length === 0 && mdFiles.length === 0) {
         fileList.innerHTML = '<p class="muted">Tidak ada file di folder ini.</p>';
+        const countEl = document.getElementById('file-count');
+        if (countEl) countEl.textContent = '0';
         return;
       }
-      // Subfolder dulu — bisa di-buka
+      // Subfolder dulu — klik baris ATAU tombol Buka
       for (const dir of dirs) {
         const row = document.createElement('div');
-        row.className = 'file-row dir-row';
+        row.className = 'file-row dir-row clickable';
+        row.dataset.action = 'open';
+        row.dataset.dir = joinDir(currentDir, dir.name);
         row.innerHTML = `
           <span class="file-name">📁 ${dir.name}/</span>
           <div class="file-actions">
             <button class="btn btn-sm" data-action="open" data-dir="${joinDir(currentDir, dir.name)}">Buka</button>
           </div>
         `;
-        fileList.appendChild(row);
+        currentRows.push(row);
       }
       // Markdown files
       for (const file of mdFiles) {
         const row = document.createElement('div');
-        row.className = 'file-row';
+        row.className = 'file-row clickable';
+        row.dataset.action = 'edit';
+        row.dataset.path = file.path;
+        row.dataset.sha = file.sha;
         row.innerHTML = `
           <span class="file-name">📄 ${file.name}</span>
           <div class="file-actions">
@@ -345,8 +373,9 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
             <button class="btn btn-sm danger" data-action="delete" data-path="${file.path}" data-sha="${file.sha}">Delete</button>
           </div>
         `;
-        fileList.appendChild(row);
+        currentRows.push(row);
       }
+      renderRows();
     } catch (err: any) {
       fileList.innerHTML = `<p class="error">Gagal load files: ${err.message}</p>`;
     }
@@ -356,17 +385,23 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
   document.getElementById('btn-refresh')!.addEventListener('click', loadFiles);
   // Satu listener saja untuk seluruh aksi file/folder (delegation)
   fileList.addEventListener('click', handleFileAction);
+  // Live filter tanpa klik tombol
+  const searchInput = document.getElementById('file-search') as HTMLInputElement;
+  searchInput?.addEventListener('input', renderRows);
 
   // ── File Actions ───────────────────────────────────────────────────
   async function handleFileAction(e: Event): Promise<void> {
-    const target = e.target as HTMLButtonElement;
-    const action = target.dataset.action;
-    const path = target.dataset.path;
-    const sha = target.dataset.sha;
+    const row = (e.target as HTMLElement).closest<HTMLElement>('.file-row');
+    if (!row) return;
+    const action = e.target instanceof HTMLElement && e.target.dataset.action
+      ? e.target.dataset.action
+      : row.dataset.action;
+    const path = row.dataset.path;
+    const sha = row.dataset.sha;
     if (!action) return;
 
     if (action === 'open') {
-      currentDir = target.dataset.dir ?? '';
+      currentDir = row.dataset.dir ?? '';
       loadFiles();
     } else if (action === 'edit') {
       if (!path) return;
@@ -723,6 +758,37 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
     border: 1px solid var(--border);
     border-radius: 8px;
   }
+
+  /* Toolbar: search + count */
+  .browser-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .browser-toolbar input[type='search'] {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.5rem 0.8rem;
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    color: var(--text);
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .browser-toolbar input[type='search']:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .file-count {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
   .file-list {
     display: flex;
     flex-direction: column;
@@ -738,6 +804,14 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
     padding: 0.7rem 1rem;
     gap: 1rem;
     flex-wrap: wrap;
+  }
+  .file-row.clickable {
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .file-row.clickable:hover {
+    border-color: var(--accent);
+    background: var(--panel-2);
   }
   .file-name {
     font-family: var(--font-mono);
