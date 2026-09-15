@@ -161,10 +161,9 @@ hr { border: none; border-top: 2px dashed var(--border); margin: 2rem 0; }
 
 /* ---- markdown article body -------------------------------- */
 .prose {
-  max-width: 75ch;
-  margin-inline: auto;
+  max-width: none;
+  margin-inline: 0;
   text-align: left;
-  padding: 0 1rem;
 }
 .prose img { max-width: 100%; border-radius: var(--radius); }
 .prose ul, .prose ol { padding-left: 1.3rem; }
@@ -183,8 +182,8 @@ hr { border: none; border-top: 2px dashed var(--border); margin: 2rem 0; }
 
 /* ---- Article layout makeover -------------------------------- */
 article {
-  max-width: 900px;
-  margin-inline: auto;
+  max-width: none;
+  margin-inline: 0;
   padding: 1.5rem 0 3rem;
 }
 
