@@ -1,6 +1,6 @@
 ---
 title: "LordKnightmon X"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for LordKnightmon X. Edit me."
 tags: ["guide", "sss", "lordknightmon-x"]

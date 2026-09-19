@@ -1,6 +1,6 @@
 ---
 title: "Piedmon (Shin)"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Piedmon (Shin). Edit me."
 tags: ["guide", "sss", "piedmon-shin"]

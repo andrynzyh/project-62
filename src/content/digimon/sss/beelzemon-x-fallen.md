@@ -1,6 +1,6 @@
 ---
 title: "Beelzemon X Fallen"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Beelzemon X Fallen. Edit me."
 tags: ["guide", "sss", "beelzemon-x-fallen"]

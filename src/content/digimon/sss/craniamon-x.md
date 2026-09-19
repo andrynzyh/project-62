@@ -1,6 +1,6 @@
 ---
 title: "Craniamon X"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Craniamon X. Edit me."
 tags: ["guide", "sss", "craniamon-x"]

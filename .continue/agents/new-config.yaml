@@ -1,0 +1,18 @@
+{
+  "models": [
+    {
+      "title": "9Router",
+      "provider": "openai",
+      "model": "9router-model",
+      "apiBase": "http://localhost:20128/v1",
+      "apiKey": "sk-d32f84e24221e7d1-nuuajn-e82dd40a"
+    }
+  ],
+  "tabAutocompleteModel": {
+    "title": "9Router Autocomplete",
+    "provider": "openai",
+    "model": "9router-model",
+    "apiBase": "http://localhost:20128/v1",
+    "apiKey": "sk-d32f84e24221e7d1-nuuajn-e82dd40a"
+  }
+}

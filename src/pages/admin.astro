@@ -45,7 +45,6 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
     <div class="admin-header">
       <h1>📋 CMS Dashboard</h1>
       <div class="admin-actions">
-        <button id="btn-new-post" class="btn solid">+ New Post</button>
         <button id="btn-refresh" class="btn">↻ Refresh</button>
         <button id="btn-logout" class="btn danger">Logout</button>
       </div>
@@ -145,7 +144,10 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
 
     <!-- File Browser -->
     <div id="file-browser" class="file-browser">
-      <h2>📁 File Browser</h2>
+      <div class="file-browser-head">
+        <h2>📁 File Browser</h2>
+        <button id="btn-new-post" class="btn solid">+ New Post</button>
+      </div>
       <div class="folder-select">
         <label>Koleksi:</label>
         <select id="collection-select">
@@ -504,7 +506,7 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
     try {
       // Fetch file content
       const file = await ghFetch(`/contents/${path}`);
-      const content = atob(file.content);
+      const content = decodeGitHubContent(file.content);
 
       // Parse frontmatter — strip it from the markdown body so we don't
       // end up with a duplicate frontmatter block on save.
@@ -1162,10 +1164,18 @@ const passwordHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d
     border-radius: var(--radius);
     margin-bottom: 1.5rem;
   }
+  .file-browser-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+  }
   .file-browser h2 {
     font-size: 1.3rem;
     margin-top: 0;
-    margin-bottom: 0.9rem;
+    margin-bottom: 0;
   }
   .folder-select {
     display: flex;

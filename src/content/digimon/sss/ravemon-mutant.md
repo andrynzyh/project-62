@@ -1,6 +1,6 @@
 ---
 title: "Ravemon (Mutant)"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Ravemon (Mutant). Edit me."
 tags: ["guide", "sss", "ravemon-mutant"]

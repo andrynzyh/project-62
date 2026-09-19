@@ -1,6 +1,6 @@
 ---
 title: "Dynasmon X Fallen"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Dynasmon X Fallen. Edit me."
 tags: ["guide", "sss", "dynasmon-x-fallen"]

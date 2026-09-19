@@ -1,6 +1,6 @@
 ---
 title: "Lilithmon X"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Lilithmon X. Edit me."
 tags: ["guide", "sss", "lilithmon-x"]

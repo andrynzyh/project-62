@@ -1,6 +1,6 @@
 ---
 title: "Demon X"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Demon X. Edit me."
 tags: ["guide", "sss", "demon-x"]

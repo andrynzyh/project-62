@@ -1,6 +1,6 @@
 ---
 title: "ShineGreymon (Golden)"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for ShineGreymon (Golden). Edit me."
 tags: ["guide", "sss", "shinegreymon-golden"]

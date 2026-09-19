@@ -1,6 +1,6 @@
 ---
 title: "Beelzemon (Blast Mode) (Shin)"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Beelzemon (Blast Mode) (Shin). Edit me."
 tags: ["guide", "sss", "beelzemon-blast-mode-shin"]

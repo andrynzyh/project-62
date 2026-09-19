@@ -1,6 +1,6 @@
 ---
 title: "Duftmon X Fallen"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Duftmon X Fallen. Edit me."
 tags: ["guide", "sss", "duftmon-x-fallen"]

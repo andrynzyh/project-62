@@ -1,6 +1,6 @@
 ---
 title: "PlatinumSukamon"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for PlatinumSukamon. Edit me."
 tags: ["guide", "sss", "platinumsukamon"]

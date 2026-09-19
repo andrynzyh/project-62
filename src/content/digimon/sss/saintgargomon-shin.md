@@ -1,6 +1,6 @@
 ---
 title: "SaintGargomon Shin"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for SaintGargomon Shin. Edit me."
 tags: ["guide", "sss", "saintgargomon-shin"]

@@ -1,6 +1,6 @@
 ---
 title: "Gankoomon X"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Gankoomon X. Edit me."
 tags: ["guide", "sss", "gankoomon-x"]

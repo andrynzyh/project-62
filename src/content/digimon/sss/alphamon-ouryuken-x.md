@@ -14,7 +14,7 @@ role: "Autoattack"
 
 **Rank: SSS** — Alphamon Ouryuken X is unlocked from
 **Alphamon X + OuRyumon X** (Dorumon + Ryudamon sides).
-See also the [Alphamon Ouryuken X](/digimon/alphamon-ouryuken-x/) entry.
+See also the [Alphamon Ouryuken X](../digimon/alphamon-ouryuken-x/) entry.
 
 ## Requirements 📋
 

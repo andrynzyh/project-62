@@ -1,6 +1,6 @@
 ---
 title: "Housemon"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Housemon. Edit me."
 tags: ["guide", "sss", "housemon"]

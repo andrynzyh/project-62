@@ -1,17 +1,15 @@
 ---
 title: "Alphamon Ouryuken"
 emoji: "🦖"
-rank: "SSS"
 description: "Unlock SSS Alphamon Ouryuken via the Dorumon + Ryuudamon questlines and the DexDorugoramon Gate chain for Death-X Antibodies."
 tags: ["guide", "sss", "jogress", "alphamon"]
 icon: Alphamon_Ouryuken_Awaken
 order: 29
 ---
 
-
 ## Overview
 
-**Rank: SSS** — Alphamon Ouryuken is Vaccine / Steel / Jogress, unlocked from
+**Rank: SS** — Alphamon Ouryuken is Vaccine / Steel / Jogress, unlocked from
 **Alphamon + OuRyuumon** (Dorumon + Ryuudamon sides).
 
 ## Requirements 📋

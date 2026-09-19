@@ -1,6 +1,6 @@
 ---
 title: "Megidramon X"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Megidramon X. Edit me."
 tags: ["guide", "sss", "megidramon-x"]

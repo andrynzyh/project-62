@@ -1,6 +1,6 @@
 ---
 title: "Chaosdramon X"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Chaosdramon X. Edit me."
 tags: ["guide", "sss", "chaosdramon-x"]

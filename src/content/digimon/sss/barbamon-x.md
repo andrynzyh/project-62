@@ -1,6 +1,6 @@
 ---
 title: "Barbamon X"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Barbamon X. Edit me."
 tags: ["guide", "sss", "barbamon-x"]

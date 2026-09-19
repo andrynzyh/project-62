@@ -1,6 +1,6 @@
 ---
 title: "Mamemon X"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Mamemon X. Edit me."
 tags: ["guide", "sss", "mamemon-x"]

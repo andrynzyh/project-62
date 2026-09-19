@@ -1,6 +1,6 @@
 ---
 title: "Orochimon"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Orochimon. Edit me."
 tags: ["guide", "sss", "orochimon"]

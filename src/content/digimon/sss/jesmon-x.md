@@ -1,6 +1,6 @@
 ---
 title: "Jesmon X"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Jesmon X. Edit me."
 tags: ["guide", "sss", "jesmon-x"]

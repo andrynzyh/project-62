@@ -1,6 +1,6 @@
 ---
 title: "Siriusmon"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Siriusmon. Edit me."
 tags: ["guide", "sss", "siriusmon"]

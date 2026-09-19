@@ -1,6 +1,6 @@
 ---
 title: "Apocalymon (Shin)"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Apocalymon (Shin). Edit me."
 tags: ["guide", "sss", "apocalymon-shin"]

@@ -1,6 +1,6 @@
 ---
 title: "Belphemon (Rage Mode) (Shin)"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Belphemon (Rage Mode) (Shin). Edit me."
 tags: ["guide", "sss", "belphemon-rage-mode-shin"]

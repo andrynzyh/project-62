@@ -1,6 +1,6 @@
 ---
 title: "UlforceVeedramon X"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for UlforceVeedramon X. Edit me."
 tags: ["guide", "sss", "ulforceveedramon-x"]

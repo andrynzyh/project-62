@@ -1,6 +1,6 @@
 ---
 title: "Imperialdramon Paladin Mode (Vengeful)"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Imperialdramon Paladin Mode (Vengeful). Edit me."
 tags: ["guide", "sss", "imperialdramon-paladin-mode-vengeful"]

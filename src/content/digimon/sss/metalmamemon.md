@@ -1,6 +1,6 @@
 ---
 title: "MetalMamemon"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for MetalMamemon. Edit me."
 tags: ["guide", "sss", "metalmamemon"]

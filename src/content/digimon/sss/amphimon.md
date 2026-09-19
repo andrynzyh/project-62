@@ -1,6 +1,6 @@
 ---
 title: "Amphimon"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Amphimon. Edit me."
 tags: ["guide", "sss", "amphimon"]

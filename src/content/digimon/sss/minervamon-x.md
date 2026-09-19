@@ -1,6 +1,6 @@
 ---
 title: "Minervamon X"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Minervamon X. Edit me."
 tags: ["guide", "sss", "minervamon-x"]

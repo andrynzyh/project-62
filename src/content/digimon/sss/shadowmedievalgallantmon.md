@@ -1,6 +1,6 @@
 ---
 title: "ShadowMedievalGallantmon"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for ShadowMedievalGallantmon. Edit me."
 tags: ["guide", "sss", "shadowmedievalgallantmon"]

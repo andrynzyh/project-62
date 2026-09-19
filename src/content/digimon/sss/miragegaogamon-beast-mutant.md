@@ -1,6 +1,6 @@
 ---
 title: "MirageGaogamon (Beast Mutant)"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for MirageGaogamon (Beast Mutant). Edit me."
 tags: ["guide", "sss", "miragegaogamon-beast-mutant"]

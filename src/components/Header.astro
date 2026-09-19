@@ -13,10 +13,8 @@ const current = strip(Astro.url.pathname);
 
 const links = [
   { href: withBase('/'), label: 'Home' },
-  { href: withBase('/digimon/'), label: 'Digimon' },
-  { href: withBase('/accessories/'), label: 'Accessories' },
-  { href: withBase('/search/'), label: 'Search' },
   { href: withBase('/about/'), label: 'About' },
+  { href: withBase('/search/'), label: 'Search' },
 ];
 
 const isActive = (href: string): boolean => {

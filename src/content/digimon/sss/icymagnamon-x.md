@@ -1,6 +1,6 @@
 ---
 title: "IcyMagnamon X"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for IcyMagnamon X. Edit me."
 tags: ["guide", "sss", "icymagnamon-x"]

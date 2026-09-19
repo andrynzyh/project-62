@@ -1,6 +1,6 @@
 ---
 title: "Puppetmon (Shin)"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Puppetmon (Shin). Edit me."
 tags: ["guide", "sss", "puppetmon-shin"]

@@ -1,6 +1,6 @@
 ---
 title: "MetalSeadramon (Shin)"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for MetalSeadramon (Shin). Edit me."
 tags: ["guide", "sss", "metalseadramon-shin"]

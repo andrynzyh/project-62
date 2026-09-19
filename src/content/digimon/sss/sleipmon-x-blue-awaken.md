@@ -1,6 +1,6 @@
 ---
 title: "Sleipmon X (Blue) (Awaken)"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Sleipmon X (Blue) (Awaken). Edit me."
 tags: ["guide", "sss", "sleipmon-x-blue-awaken"]

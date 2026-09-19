@@ -1,6 +1,6 @@
 ---
 title: "Sakuyamon Shin"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Sakuyamon Shin. Edit me."
 tags: ["guide", "sss", "sakuyamon-shin"]

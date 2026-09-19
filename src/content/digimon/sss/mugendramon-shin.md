@@ -1,6 +1,6 @@
 ---
 title: "MugenDramon (Shin)"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for MugenDramon (Shin). Edit me."
 tags: ["guide", "sss", "mugendramon-shin"]

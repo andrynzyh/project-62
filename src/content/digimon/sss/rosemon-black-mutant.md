@@ -1,6 +1,6 @@
 ---
 title: "Rosemon (Black Mutant)"
-emoji: "âš”ï¸"
+emoji: "⚔️"
 rank: "SSS"
 description: "Placeholder description for Rosemon (Black Mutant). Edit me."
 tags: ["guide", "sss", "rosemon-black-mutant"]
