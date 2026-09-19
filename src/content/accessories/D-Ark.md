@@ -5,7 +5,9 @@ category: "Digivice"
 description: "The D-Ark digivice."
 tags: []
 order: 99
----# D-Ark Digivice
+---
+
+# D-Ark Digivice
 
 The **D-Ark Digivice** is a progression-based Digivice that provides permanent stat bonuses and unique visual effects for your Tamer.
 

@@ -1,7 +1,7 @@
 ---
 title: "Fanglongmon"
 emoji: 🐉
-category: "Digivice"
+category: "Equipment"
 description: "Fanglongmon-related accessory."
 tags: []
 order: 99

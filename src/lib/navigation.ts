@@ -124,6 +124,9 @@ export interface NavItem {
   title: string;
   emoji: string;
   icon?: string;
+  id: string;
+  category?: string;
+  owner?: string;
   href: string;
 }
 
@@ -186,6 +189,15 @@ export function buildNavSection(
       }),
       description:
         (entry.data as Record<string, unknown>).description as string ?? '',
+      id: entry.id,
+      category:
+        typeof (entry.data as Record<string, unknown>).category === 'string'
+          ? ((entry.data as Record<string, unknown>).category as string)
+          : undefined,
+      owner:
+        typeof (entry.data as Record<string, unknown>).owner === 'string'
+          ? ((entry.data as Record<string, unknown>).owner as string)
+          : undefined,
       href: withBase(`${section.href}${entry.id}/`),
     };
     if (bucket) bucket.push(item);

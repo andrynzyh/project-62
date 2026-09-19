@@ -5,7 +5,9 @@ category: "Goggles"
 description: "Goggle accessories."
 tags: []
 order: 99
----# Goggles
+---
+
+# Goggles
 
 Goggles are progression-based equipment that provide **two fixed stat bonuses** and unique stat combinations depending on their type.
 

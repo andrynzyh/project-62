@@ -1,11 +1,13 @@
 ---
 title: "True Vice"
 emoji: 🗡️
-category: "Equipment"
+category: "Digivice"
 description: "True Vice evolution."
 tags: []
 order: 99
----# True Digivice
+---
+
+# True Digivice
 
 ## Introduction
 

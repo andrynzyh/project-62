@@ -1,8 +1,9 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import AccessoryCard from '../../components/AccessoryCard.astro';
+import EntryIcon from '../../components/EntryIcon.astro';
 import { getCollection } from 'astro:content';
 import { withBase } from '../../lib/paths';
+import { resolveIcon } from '../../lib/icons';
 
 const entries = await getCollection('accessories');
 
@@ -19,48 +20,59 @@ const groups = categories
 ---
 
 <BaseLayout
-  title="Accessories — project-62"
-  description="Goggles, digivices, equipment and clothing from the Digital World."
+  title="Gear & Guides — project-62"
+  description="Goggles, digivices, equipment, clothing and guides."
 >
   <div>
-      <p class="back"><a href={withBase('/hub/')}>← All Entries</a></p>
-      <h1>Accessories</h1>
-      <p class="muted">
-        {entries.length} items · grouped by category
-      </p>
+    <p class="back"><a href={withBase('/hub/')}>← All Entries</a></p>
+    <h1>Gear & Guides</h1>
+    <p class="muted">
+      {entries.length} items · grouped by category
+    </p>
 
-      <!-- Category filter -->
-      <div class="filters panel">
-        <label>
-          Category
-          <select id="f-category">
-            <option value="">All</option>
-            {categories.map((category) => (
-              <option value={category}>{category}</option>
+    <div class="filters panel">
+      <label>
+        Category
+        <select id="f-category">
+          <option value="">All</option>
+          {categories.map((category) => (
+            <option value={category}>{category}</option>
+          ))}
+        </select>
+      </label>
+      <button id="f-reset" class="btn" type="button">✕ Reset</button>
+      <p id="f-count" class="f-count muted" aria-live="polite"></p>
+    </div>
+
+    {
+      groups.map((group) => (
+        <section data-group={group.label}>
+          <h2>
+            {group.label} <span class="count">{group.items.length}</span>
+          </h2>
+          <div class="card-grid">
+            {group.items.map((entry) => (
+              <div class="cell" data-category={entry.data.category}>
+                <a class="g-card panel" href={withBase(`/accessories/${entry.id}/`)}>
+                  <span class="g-icon" aria-hidden="true">
+                    <EntryIcon
+                      name={resolveIcon({ collection: 'accessories', slug: entry.id, icon: entry.data.icon })}
+                      emoji={entry.data.emoji}
+                    />
+                  </span>
+                  <h3>{entry.data.title}</h3>
+                  <div class="meta">
+                    <span class="badge blue">{entry.data.category}</span>
+                    {entry.data.owner && <span class="badge accent">{entry.data.owner}</span>}
+                  </div>
+                  {entry.data.description && <p>{entry.data.description}</p>}
+                </a>
+              </div>
             ))}
-          </select>
-        </label>
-
-        <button id="f-reset" class="btn" type="button">✕ Reset</button>
-        <p id="f-count" class="f-count muted" aria-live="polite"></p>
-      </div>
-
-      {
-        groups.map((group) => (
-          <section data-group={group.label}>
-            <h2>
-              {group.label} <span class="count">{group.items.length}</span>
-            </h2>
-            <div class="card-grid">
-              {group.items.map((entry) => (
-                <div class="cell" data-category={entry.data.category}>
-                  <AccessoryCard entry={entry} />
-                </div>
-              ))}
-            </div>
-          </section>
-        ))
-      }
+          </div>
+        </section>
+      ))
+    }
   </div>
 </BaseLayout>
 
@@ -82,7 +94,6 @@ const groups = categories
       if (show) visible++;
     }
 
-    // Hide whole category sections that ended up empty
     for (const section of sections) {
       const anyVisible = Array.from(
         section.querySelectorAll<HTMLElement>('.cell')
@@ -96,7 +107,6 @@ const groups = categories
   }
 
   categorySelect.addEventListener('change', applyFilters);
-
   resetBtn?.addEventListener('click', () => {
     categorySelect.value = '';
     applyFilters();
@@ -104,3 +114,86 @@ const groups = categories
 
   applyFilters();
 </script>
+
+<style>
+  .count {
+    font-size: 0.8rem;
+    color: var(--accent);
+    vertical-align: middle;
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem;
+    margin: 1.25rem 0 2rem;
+  }
+  .filters label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .filters select {
+    min-width: 150px;
+    padding: 0.5rem 0.7rem;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--text);
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .filters select:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(41, 241, 156, 0.15);
+  }
+  .f-count {
+    margin: 0 0 0 auto;
+    align-self: center;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .cell { display: flex; }
+  .cell :global(.g-card) { width: 100%; }
+  .g-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    color: var(--text);
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .g-card:hover {
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+    transform: translateY(-2px);
+  }
+  .g-card:hover h3 { color: var(--accent); }
+  .g-icon { font-size: 1.4rem; }
+  .g-card h3 {
+    margin: 0;
+    border: none;
+    padding: 0;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .meta { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .g-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+</style>

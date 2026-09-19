@@ -6,6 +6,7 @@
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import EntryIcon from '../../components/EntryIcon.astro';
+import ItemCard from '../../components/ItemCard.astro';
 import { getCollection } from 'astro:content';
 import { withBase } from '../../lib/paths';
 import {
@@ -47,13 +48,26 @@ const nav = buildNavSection(section, entries);
             </h2>
             <div class="card-grid">
               {group.items.map((item) => (
-                <a class="g-card panel" href={item.href}>
-                  <span class="g-icon" aria-hidden="true">
-                    <EntryIcon name={item.icon} emoji={item.emoji} />
-                  </span>
-                  <h3>{item.title}</h3>
-                  {item.description && <p>{item.description}</p>}
-                </a>
+                collection === 'items' ? (
+                  <ItemCard
+                    id={item.id}
+                    href={item.href}
+                    title={item.title}
+                    emoji={item.emoji}
+                    icon={item.icon}
+                    category={item.category}
+                    owner={item.owner}
+                    description={item.description}
+                  />
+                ) : (
+                  <a class="g-card panel" href={item.href}>
+                    <span class="g-icon" aria-hidden="true">
+                      <EntryIcon name={item.icon} emoji={item.emoji} />
+                    </span>
+                    <h3>{item.title}</h3>
+                    {item.description && <p>{item.description}</p>}
+                  </a>
+                )
               ))}
             </div>
           </section>

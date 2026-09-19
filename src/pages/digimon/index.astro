@@ -42,6 +42,11 @@ const groups = [
       <!-- Filter bar -->
       <div class="filters panel">
         <label>
+          Search
+          <input id="f-search" type="search" placeholder="Cari nama digimon…" autocomplete="off" />
+        </label>
+
+        <label>
           Rank
           <select id="f-rank">
             <option value="">All</option>
@@ -85,6 +90,7 @@ const groups = [
               {group.items.map((entry) => (
                 <div
                   class="cell"
+                  data-name={entry.data.title.toLowerCase()}
                   data-rank={entry.data.rank ?? ''}
                   data-attribute={entry.data.attribute ?? ''}
                   data-role={entry.data.role ?? ''}
@@ -100,6 +106,7 @@ const groups = [
 </BaseLayout>
 
 <script>
+  const searchInput = document.getElementById('f-search') as HTMLInputElement;
   const rankSelect = document.getElementById('f-rank') as HTMLSelectElement;
   const attributeSelect = document.getElementById('f-attribute') as HTMLSelectElement;
   const typeSelect = document.getElementById('f-type') as HTMLSelectElement;
@@ -113,14 +120,17 @@ const groups = [
     const rank = rankSelect.value;
     const attribute = attributeSelect.value;
     const type = typeSelect.value;
+    const search = searchInput.value.trim().toLowerCase();
 
     let visible = 0;
 
     for (const cell of cells) {
+      const name = (cell.dataset.name ?? '').toLowerCase();
       const show =
         (!rank || cell.dataset.rank === rank) &&
         (!attribute || cell.dataset.attribute === attribute) &&
-        (!type || cell.dataset.role === type);
+        (!type || cell.dataset.role === type) &&
+        (!search || name.includes(search));
 
       cell.hidden = !show;
       if (show) visible++;
@@ -142,11 +152,13 @@ const groups = [
   for (const select of [rankSelect, attributeSelect, typeSelect]) {
     select.addEventListener('change', applyFilters);
   }
+  searchInput.addEventListener('input', applyFilters);
 
   resetBtn?.addEventListener('click', () => {
     for (const select of [rankSelect, attributeSelect, typeSelect]) {
       select.value = '';
     }
+    searchInput.value = '';
     applyFilters();
   });
 
@@ -178,6 +190,21 @@ const groups = [
     text-transform: uppercase;
     color: var(--muted);
   }
+  .filters input[type="search"] {
+    min-width: 200px;
+    padding: 0.5rem 0.7rem;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--text);
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .filters input[type="search"]:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(41, 241, 156, 0.15);
+  }
   .filters select {
     min-width: 150px;
     padding: 0.5rem 0.7rem;
@@ -207,6 +234,9 @@ const groups = [
   /* ---- filterable cards ---- */
   .cell {
     display: flex;
+  }
+  .cell[hidden] {
+    display: none;
   }
   .cell :global(.card) {
     width: 100%;

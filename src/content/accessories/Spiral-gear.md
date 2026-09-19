@@ -5,7 +5,9 @@ category: "Equipment"
 description: "Spiral gear equipment."
 tags: []
 order: 99
----## Spiral Gear Crafting
+---
+
+## Spiral Gear Crafting
 
 Spiral Gear is crafted by upgrading your **Fanglongmon Ultimate Ancient Gear Lv.10**. Each accessory requires **Spiral Essence**, boss cores, and Tera.
 
